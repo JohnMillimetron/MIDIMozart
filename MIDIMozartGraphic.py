@@ -39,19 +39,17 @@ class MainWindow(QMainWindow):
         self.create_button.clicked.connect(self.create_midi)
         self.instrument_input.valueChanged.connect(self.instrument_change)
 
-        btn = QPushButton('Ы')
-        btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-
         self.layout1 = QHBoxLayout(self.chanel1notes_frame)
         self.layout1.setGeometry(QRect(161, 0, 3840, 80))
         self.layout1.setSpacing(0)
-        self.layout1.setAlignment()
-        self.layout1.addWidget(btn)
+        self.layout1.setAlignment(Qt.AlignLeft)
+        self.layout1.setContentsMargins(0, 0, 0, 0)
 
     def key_clicked(self):
         MyComposition[int(self.chanel_input.value())].add_note(pitch=int(self.sender().text().split('\n')[1]),
                                                                duration=float(self.current_duration))
-        self.make_button()
+        self.make_button(text=self.sender().text().split('\n')[0], x=int(self.current_duration * 100),
+                         ch_n=int(self.chanel_input.value()))
 
     def duration_button_clicked(self):
         temp = {"1": 4, "2": 2, "2.": 3, "4": 1, "4.": 1.5, "8": 0.5, "8.": 0.75, "16": 0.25, "16.": 0.375}
@@ -91,9 +89,19 @@ class MainWindow(QMainWindow):
         print(MyComposition)
         MyComposition.export_as_midi('test4.mid')
 
-    def make_button(self):
-        btn = QPushButton(text='Ы')
+    def make_button(self, x, text, ch_n):
+        btn = QPushButton(text=f'{ch_n}\n{len(MyComposition[ch_n].notes) - 1}\n{text}')
+        btn.setMaximumWidth(x)
+        btn.setMinimumWidth(x)
+        btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        btn.clicked.connect(self.delete_note)
         self.layout1.addWidget(btn)
+
+    def delete_note(self):
+        ch_n, note_n, _ = self.sender().text().split('\n')
+        MyComposition[int(ch_n)].remove_note(int(note_n))
+        self.layout1.removeWidget(self.sender())
+        self.layout1.update()
 
     # def refresh(self):
     #     for i, chanel in enumerate(MyComposition):
