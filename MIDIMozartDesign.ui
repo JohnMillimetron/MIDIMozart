@@ -1873,6 +1873,82 @@ color: rgb(255, 255, 255);</string>
        <height>296</height>
       </rect>
      </property>
+     <widget class="QWidget" name="chanel1" native="true">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>3840</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <widget class="QFrame" name="chanel1properties">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>161</width>
+         <height>81</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QLineEdit" name="chanel1name">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>141</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Chanel 1</string>
+        </property>
+       </widget>
+       <widget class="QSpinBox" name="chanel1instrument_input">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>40</y>
+          <width>141</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>128</number>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="chanel1notes_frame">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>0</y>
+         <width>3840</width>
+         <height>80</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+      </widget>
+     </widget>
     </widget>
    </widget>
    <widget class="QFrame" name="parametersArea">
@@ -1930,8 +2006,11 @@ color: rgb(255, 255, 255);</string>
      <property name="showGroupSeparator" stdset="0">
       <bool>false</bool>
      </property>
+     <property name="minimum">
+      <number>1</number>
+     </property>
      <property name="maximum">
-      <number>127</number>
+      <number>128</number>
      </property>
     </widget>
     <widget class="QLabel" name="label_3">

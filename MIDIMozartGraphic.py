@@ -1,7 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QSizePolicy
 from PyQt5 import uic  # Импортируем uic
-from PyQt5.QtCore import QCoreApplication, Qt
+from PyQt5.QtCore import QCoreApplication, Qt, QRect
 from MIDIMozartClasses import Composition, NOTES_AND_NAMES_is, NOTE_NUMBERS_AND_OCTAVES
 from MIDIMozartDesign import Ui_MIDIMozart
 
@@ -39,9 +39,19 @@ class MainWindow(QMainWindow):
         self.create_button.clicked.connect(self.create_midi)
         self.instrument_input.valueChanged.connect(self.instrument_change)
 
+        btn = QPushButton('Ы')
+        btn.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        self.layout1 = QHBoxLayout(self.chanel1notes_frame)
+        self.layout1.setGeometry(QRect(161, 0, 3840, 80))
+        self.layout1.setSpacing(0)
+        self.layout1.setAlignment()
+        self.layout1.addWidget(btn)
+
     def key_clicked(self):
         MyComposition[int(self.chanel_input.value())].add_note(pitch=int(self.sender().text().split('\n')[1]),
                                                                duration=float(self.current_duration))
+        self.make_button()
 
     def duration_button_clicked(self):
         temp = {"1": 4, "2": 2, "2.": 3, "4": 1, "4.": 1.5, "8": 0.5, "8.": 0.75, "16": 0.25, "16.": 0.375}
@@ -75,18 +85,15 @@ class MainWindow(QMainWindow):
             self.H4.click()
 
     def instrument_change(self, instr_num):
-        MyComposition[int(self.chanel_input.value())].set_instrument(int(instr_num))
+        MyComposition[int(self.chanel_input.value())].set_instrument(int(instr_num) - 1)
 
     def create_midi(self):
         print(MyComposition)
         MyComposition.export_as_midi('test4.mid')
 
-    # def make_button(self):
-    #     btn = QPushButton(text='Ы', parent=self.channelsAreaWidget)
-    #     btn.resize(100, 100)
-    #     btn.move(100, 100)
-    #     # self.layout.addWidget(btn)
-    #     self.update()
+    def make_button(self):
+        btn = QPushButton(text='Ы')
+        self.layout1.addWidget(btn)
 
     # def refresh(self):
     #     for i, chanel in enumerate(MyComposition):
