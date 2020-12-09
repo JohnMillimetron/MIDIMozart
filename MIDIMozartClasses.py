@@ -165,9 +165,10 @@ class Note:
         return self.name
 
 
-class GraphicNote(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
+class NoteButton(QtWidgets.QPushButton):
+    def __init__(self, *args, note_number, ch_number, note_name):
+        super().__init__(*args)
+        self.note_number, self.ch_number, self.note_name = note_number, ch_number, note_name
 
 
 if __name__ == '__main__':

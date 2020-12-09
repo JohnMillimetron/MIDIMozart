@@ -1882,9 +1882,6 @@ color: rgb(255, 255, 255);</string>
         <height>80</height>
        </rect>
       </property>
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
       <widget class="QFrame" name="chanel1properties">
        <property name="geometry">
         <rect>
@@ -1938,10 +1935,10 @@ color: rgb(255, 255, 255);</string>
       <widget class="QFrame" name="chanel1notes_frame">
        <property name="geometry">
         <rect>
-         <x>159</x>
+         <x>160</x>
          <y>0</y>
          <width>3831</width>
-         <height>80</height>
+         <height>81</height>
         </rect>
        </property>
        <property name="frameShape">
@@ -1955,23 +1952,10 @@ color: rgb(255, 255, 255);</string>
      <widget class="Line" name="line">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>80</y>
-        <width>16777215</width>
-        <height>3</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="Line" name="line_2">
-      <property name="geometry">
-       <rect>
         <x>160</x>
         <y>0</y>
         <width>3</width>
-        <height>80</height>
+        <height>1280</height>
        </rect>
       </property>
       <property name="orientation">
@@ -2040,11 +2024,14 @@ color: rgb(255, 255, 255);</string>
       <widget class="QFrame" name="chanel2notes_frame">
        <property name="geometry">
         <rect>
-         <x>159</x>
+         <x>160</x>
          <y>0</y>
          <width>3831</width>
          <height>80</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -3129,7 +3116,7 @@ color: rgb(255, 255, 255);</string>
       <x>0</x>
       <y>560</y>
       <width>1921</width>
-      <height>151</height>
+      <height>161</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -3417,7 +3404,7 @@ color: rgb(255, 255, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>1920</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
