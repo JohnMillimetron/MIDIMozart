@@ -21,6 +21,8 @@ class MainWindow(QMainWindow):
         uic.loadUi('MIDIMozartDesign.ui', self)  # Загружаем дизайн
 
         self.current_duration = 1
+        self.current_chanel = 1
+        self.current_tempo = 120
 
         # Привязка клавиш к обработчику
         for i in range(21, 109):
@@ -45,15 +47,21 @@ class MainWindow(QMainWindow):
                                QHBoxLayout(self.chanel11notes_frame), QHBoxLayout(self.chanel12notes_frame),
                                QHBoxLayout(self.chanel13notes_frame), QHBoxLayout(self.chanel14notes_frame),
                                QHBoxLayout(self.chanel15notes_frame), QHBoxLayout(self.chanel16notes_frame)]
+        self.chanel_buttons = [[] for _ in range(16)]
         for i in range(16):
             eval(f'self.chanel_layouts[{i}].setGeometry(QRect(161, 0, 3840, 80))')
             eval(f'self.chanel_layouts[{i}].setSpacing(0)')
             eval(f'self.chanel_layouts[{i}].setAlignment(Qt.AlignLeft)')
             eval(f'self.chanel_layouts[{i}].setContentsMargins(0, 0, 0, 0)')
 
+        for i in range(16):
+            eval(f'self.chanel{i + 1}instrument_input.valueChanged.connect(self.instrument_change)')
+
         # Привязка кнопок к обработчикам
         self.create_button.clicked.connect(self.create_midi)
-        self.instrument_input.valueChanged.connect(self.instrument_change)
+        self.chanel_input.valueChanged.connect(self.current_chanel_change)
+        self.tempo_input.valueChanged.connect(self.current_tempo_change)
+        # self.instrument_input.valueChanged.connect(self.instrument_change)
 
     # Обработчик нажатия клавиши фортепиано
     def key_clicked(self):
@@ -64,39 +72,52 @@ class MainWindow(QMainWindow):
 
     # Отрисовывает графическое изображение ноты в канале
     def make_button(self, size, note_name, chanel_number, note_number=None):
-        btn = NoteButton(note_number=len(MyComposition[chanel_number - 1].notes) if not note_number else note_number,
-                         ch_number=chanel_number, note_name=note_name)
+        self.chanel_buttons[chanel_number - 1].append(
+            NoteButton(note_number=len(MyComposition[chanel_number - 1].notes) if not note_number else
+            note_number, ch_number=chanel_number, note_name=note_name))
 
-        btn.setText(str(btn.note_name) + '\n' + str(btn.note_number))
-        btn.setMaximumWidth(size)
-        btn.setMinimumWidth(size)
-        btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
-        btn.clicked.connect(self.delete_note)
-        self.chanel_layouts[chanel_number - 1].addWidget(btn)
+        self.chanel_buttons[chanel_number - 1][-1].setText(
+            str(self.chanel_buttons[chanel_number - 1][-1].note_name) + '\n' +
+            str(self.chanel_buttons[chanel_number - 1][-1].note_number))
+        self.chanel_buttons[chanel_number - 1][-1].setMaximumWidth(size)
+        self.chanel_buttons[chanel_number - 1][-1].setMinimumWidth(size)
+        self.chanel_buttons[chanel_number - 1][-1].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.chanel_buttons[chanel_number - 1][-1].clicked.connect(self.delete_note)
+        self.chanel_layouts[chanel_number - 1].addWidget(self.chanel_buttons[chanel_number - 1][-1])
 
     # Удаляет ноту с канала
     def delete_note(self):
-        ch_n, note_n = self.sender().ch_number, self.sender().note_number
+        ch_n = self.sender().ch_number
+        note_n = self.chanel_buttons[ch_n - 1].index(self.sender()) + 1
+        print(f'delete_note executed for {ch_n, note_n}')
         MyComposition[ch_n - 1].remove_note(note_n - 1)
         self.chanel_layouts[ch_n - 1].removeWidget(self.sender())
+        self.chanel_buttons[ch_n - 1].remove(self.chanel_buttons[ch_n - 1][note_n - 1])
 
         # for i in range(self.chanel_layouts[ch_n].count()):
         #     self.chanel_layouts[ch_n].itemAt(i).note_number = i + 1
 
-        for i in reversed(range(self.chanel_layouts[ch_n - 1].count())):
-            widgetToRemove = self.chanel_layouts[ch_n - 1].itemAt(i).widget()
-            self.chanel_layouts[ch_n - 1].removeWidget(widgetToRemove)
-            widgetToRemove.setParent(None)
-
-        for i, note in enumerate(MyComposition[ch_n - 1]):
-            self.make_button(note_name=note.name, size=int(note.duration * 100), note_number=i + 1,
-                             chanel_number=ch_n)
+        # for i in reversed(range(self.chanel_layouts[ch_n - 1].count())):
+        #     widgetToRemove = self.chanel_layouts[ch_n - 1].itemAt(i).widget()
+        #     self.chanel_layouts[ch_n - 1].removeWidget(widgetToRemove)
+        #     widgetToRemove.setParent(None)
+        #
+        # for i, note in enumerate(MyComposition[ch_n - 1]):
+        #     self.make_button(note_name=note.name, size=int(note.duration * 100), note_number=i + 1,
+        #                      chanel_number=ch_n)
 
     # Обработчик смены длительности
     def duration_button_clicked(self):
         temp = {"1": 4, "2": 2, "2.": 3, "4": 1, "4.": 1.5, "8": 0.5, "8.": 0.75, "16": 0.25, "16.": 0.375}
         self.current_duration = temp.get(self.sender().text())
         self.duration_label.setText(f'Current duration: {self.current_duration} beats')
+
+    def current_chanel_change(self):
+        self.current_chanel = int(self.chanel_input.value())
+
+    def current_tempo_change(self):
+        MyComposition.set_tempo(self.tempo_input.value())
+        self.current_tempo = int(self.tempo_input.value())
 
     # Обработчик клавиатуры
     def keyPressEvent(self, event):
@@ -126,8 +147,8 @@ class MainWindow(QMainWindow):
             self.H4.click()
 
     # Обработчик смены инструмента
-    def instrument_change(self, instr_num):
-        MyComposition[int(self.chanel_input.value()) - 1].set_instrument(int(instr_num) - 1)
+    def instrument_change(self):
+        MyComposition[int(self.sender().objectName()[6]) - 1].set_instrument(int(self.sender().value()))
 
     # Создаёт MIDI-файл
     def create_midi(self):

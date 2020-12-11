@@ -67,6 +67,10 @@ class Composition:
         else:
             self.channels.append(Chanel(tempo, instrument))
 
+    def set_tempo(self, tempo):
+        for chanel in self.channels:
+            chanel.tempo = tempo
+
     def export_as_midi(self, file_name):
         midi_file = MIDIFile(1)
         for chanel in self.channels:
