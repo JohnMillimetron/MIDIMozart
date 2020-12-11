@@ -59,20 +59,38 @@ class MainWindow(QMainWindow):
     def key_clicked(self):
         MyComposition[int(self.chanel_input.value()) - 1].add_note(pitch=int(self.sender().text().split('\n')[1]),
                                                                    duration=float(self.current_duration))
-        self.make_button(text=self.sender().text().split('\n')[0], x=int(self.current_duration * 100),
-                         ch_n=int(self.chanel_input.value()))
+        self.make_button(note_name=self.sender().text().split('\n')[0], size=int(self.current_duration * 100),
+                         chanel_number=int(self.chanel_input.value()))
 
     # Отрисовывает графическое изображение ноты в канале
-    def make_button(self, x, text, ch_n):
-        btn = NoteButton(f'{ch_n}\n{len(MyComposition[ch_n - 1].notes)}\n{text}',
-                         note_number=len(MyComposition[ch_n - 1].notes), ch_number=ch_n, note_name=text)
+    def make_button(self, size, note_name, chanel_number, note_number=None):
+        btn = NoteButton(note_number=len(MyComposition[chanel_number - 1].notes) if not note_number else note_number,
+                         ch_number=chanel_number, note_name=note_name)
 
         btn.setText(str(btn.note_name) + '\n' + str(btn.note_number))
-        btn.setMaximumWidth(x)
-        btn.setMinimumWidth(x)
+        btn.setMaximumWidth(size)
+        btn.setMinimumWidth(size)
         btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         btn.clicked.connect(self.delete_note)
-        eval(f'self.chanel_layouts[{ch_n - 1}].addWidget(btn)')
+        self.chanel_layouts[chanel_number - 1].addWidget(btn)
+
+    # Удаляет ноту с канала
+    def delete_note(self):
+        ch_n, note_n = self.sender().ch_number, self.sender().note_number
+        MyComposition[ch_n - 1].remove_note(note_n - 1)
+        self.chanel_layouts[ch_n - 1].removeWidget(self.sender())
+
+        # for i in range(self.chanel_layouts[ch_n].count()):
+        #     self.chanel_layouts[ch_n].itemAt(i).note_number = i + 1
+
+        for i in reversed(range(self.chanel_layouts[ch_n - 1].count())):
+            widgetToRemove = self.chanel_layouts[ch_n - 1].itemAt(i).widget()
+            self.chanel_layouts[ch_n - 1].removeWidget(widgetToRemove)
+            widgetToRemove.setParent(None)
+
+        for i, note in enumerate(MyComposition[ch_n - 1]):
+            self.make_button(note_name=note.name, size=int(note.duration * 100), note_number=i + 1,
+                             chanel_number=ch_n)
 
     # Обработчик смены длительности
     def duration_button_clicked(self):
@@ -115,26 +133,6 @@ class MainWindow(QMainWindow):
     def create_midi(self):
         print(MyComposition)
         MyComposition.export_as_midi('test4.mid')
-
-    # Удаляет ноту с канала
-    def delete_note(self):
-        ch_n, note_n = self.sender().ch_number, self.sender().note_number
-        MyComposition[int(ch_n) - 1].remove_note(int(note_n) - 1)
-        self.chanel_layouts[int(ch_n) - 1].removeWidget(self.sender())
-        self.refresh(ch_n)
-
-    def refresh(self, ch_n):
-        for i in reversed(range(self.chanel_layouts[ch_n - 1].count())):
-            widgetToRemove = self.chanel_layouts[ch_n - 1].itemAt(i).widget()
-            self.chanel_layouts[ch_n - 1].removeWidget(widgetToRemove)
-            widgetToRemove.setParent(None)
-
-        for note in MyComposition[ch_n - 1]:
-            self.make_button(text=note.name, x=int(note.duration * 100), ch_n=ch_n)
-
-        # for i, chanel in enumerate(MyComposition):
-        #     for note in chanel:
-        #         self.make_button(note.duration, text=note.name)
 
 
 if __name__ == '__main__':

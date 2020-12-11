@@ -133,16 +133,21 @@ class Chanel:
         self.notes.append(Note(pitch, time, length, volume, duration))
 
     def remove_note(self, note, autoshift=True):  # Удаляет ноту с дорожки
-        rm_t, rm_d = self.notes[note].time, self.notes[note].duration,
+        rm_t, rm_d = self.notes[note].time, self.notes[note].length,
         self.notes.remove(self.notes[note])
         if autoshift:
-            self.autoshift_left(rm_d, note)
+            self.autoshift(rm_d, note)
 
-    def autoshift_left(self, removed_note_duration,
-                       shift_begin_number):  # Заполняет пустоту, сдвигая ноты друг к другу
-        self.notes = self.notes[:shift_begin_number] + list(map(
-            lambda note: Note(note.pitch, note.time - removed_note_duration, note.length, note.volume),
-            self.notes[shift_begin_number:]))
+    def autoshift(self, removed_note_duration,
+                  shift_begin_number):  # Заполняет пустоту, сдвигая ноты друг к другу
+        after_deleted = self.notes[shift_begin_number:]
+        before_deleted = self.notes[:shift_begin_number]
+        for note in after_deleted:
+            note.time -= removed_note_duration
+        self.notes = before_deleted + after_deleted
+        # self.notes = self.notes[:shift_begin_number] + list(map(
+        #     lambda note: Note(note.pitch, note.time - removed_note_duration, note.length, note.volume),
+        #     self.notes[shift_begin_number:]))
 
 
 class Note:
@@ -153,7 +158,6 @@ class Note:
     """
 
     def __init__(self, pitch, time=1, length=1, volume=100, duration=1):
-        # duration - программная длина, length - слышимая длина.
         self.pitch, self.time, self.length, self.volume, self.duration = pitch, time, duration, volume, length
         for diapason, octave in NOTE_NUMBERS_AND_OCTAVES.items():
             if self.pitch in diapason:
@@ -164,66 +168,79 @@ class Note:
     def __str__(self):
         return self.name
 
+    def __repr__(self):
+        return str(self.name) + ' - ' + str(self.length) + ' b.'
+
 
 class NoteButton(QtWidgets.QPushButton):
-    def __init__(self, *args, note_number, ch_number, note_name):
-        super().__init__(*args)
+    def __init__(self, note_number, ch_number, note_name):
+        super().__init__()
         self.note_number, self.ch_number, self.note_name = note_number, ch_number, note_name
 
 
 if __name__ == '__main__':
     MyComposition = Composition()
-    MyComposition.add_chanel()
-    print(MyComposition)
+    print(MyComposition[0])
     print()
     MyComposition[0].set_tempo(120)
-    MyComposition[0].set_instrument(127)
-    MyComposition[0].add_note(67, length=0.5)
-    MyComposition[0].add_note(72, length=1)
-    MyComposition[0].add_note(67, length=0.75)
-    MyComposition[0].add_note(69, length=0.25)
-    MyComposition[0].add_note(71, length=1)
-    MyComposition[0].add_note(64, length=0.5)
-    MyComposition[0].add_note(64, length=0.5)
-    MyComposition[0].add_note(69, length=1)
-    MyComposition[0].add_note(67, length=0.75)
-    MyComposition[0].add_note(65, length=0.25)
-    MyComposition[0].add_note(67, length=1)
-    MyComposition[0].add_note(60, length=0.5)
-    MyComposition[0].add_note(60, length=0.5)
-    MyComposition[0].add_note(62, length=1)
-    MyComposition[0].add_note(62, length=0.75)
-    MyComposition[0].add_note(64, length=0.25)
-    MyComposition[0].add_note(65, length=1)
-    MyComposition[0].add_note(65, length=0.75)
-    MyComposition[0].add_note(67, length=0.25)
-    MyComposition[0].add_note(69, length=1)
-    MyComposition[0].add_note(71, length=0.75)
-    MyComposition[0].add_note(72, length=0.25)
-    MyComposition[0].add_note(74, length=1.5)
-    MyComposition[0].add_note(67, length=0.5)
-    MyComposition[0].add_note(77, length=1)
-    MyComposition[0].add_note(76, length=0.75)
-    MyComposition[0].add_note(74, length=0.25)
-    MyComposition[0].add_note(76, length=1)
-    MyComposition[0].add_note(71, length=0.5)
-    MyComposition[0].add_note(67, length=0.5)
-    MyComposition[0].add_note(72, length=1)
-    MyComposition[0].add_note(71, length=0.75)
-    MyComposition[0].add_note(69, length=0.25)
-    MyComposition[0].add_note(71, length=1)
-    MyComposition[0].add_note(64, length=0.5)
-    MyComposition[0].add_note(64, length=0.5)
-    MyComposition[0].add_note(69, length=1)
-    MyComposition[0].add_note(67, length=0.75)
-    MyComposition[0].add_note(65, length=0.25)
-    MyComposition[0].add_note(67, length=1)
-    MyComposition[0].add_note(60, length=0.75)
-    MyComposition[0].add_note(60, length=0.25)
-    MyComposition[0].add_note(72, length=1)
-    MyComposition[0].add_note(71, length=0.75)
-    MyComposition[0].add_note(69, length=0.25)
-    MyComposition[0].add_note(67, length=2)
-    print(MyComposition)
+    MyComposition[0].set_instrument(1)
+    # MyComposition[0].add_note(67, length=0.5)
+    # MyComposition[0].add_note(72, length=1)
+    # MyComposition[0].add_note(67, length=0.75)
+    # MyComposition[0].add_note(69, length=0.25)
+    # MyComposition[0].add_note(71, length=1)
+    # MyComposition[0].add_note(64, length=0.5)
+    # MyComposition[0].add_note(64, length=0.5)
+    # MyComposition[0].add_note(69, length=1)
+    # MyComposition[0].add_note(67, length=0.75)
+    # MyComposition[0].add_note(65, length=0.25)
+    # MyComposition[0].add_note(67, length=1)
+    # MyComposition[0].add_note(60, length=0.5)
+    # MyComposition[0].add_note(60, length=0.5)
+    # MyComposition[0].add_note(62, length=1)
+    # MyComposition[0].add_note(62, length=0.75)
+    # MyComposition[0].add_note(64, length=0.25)
+    # MyComposition[0].add_note(65, length=1)
+    # MyComposition[0].add_note(65, length=0.75)
+    # MyComposition[0].add_note(67, length=0.25)
+    # MyComposition[0].add_note(69, length=1)
+    # MyComposition[0].add_note(71, length=0.75)
+    # MyComposition[0].add_note(72, length=0.25)
+    # MyComposition[0].add_note(74, length=1.5)
+    # MyComposition[0].add_note(67, length=0.5)
+    # MyComposition[0].add_note(77, length=1)
+    # MyComposition[0].add_note(76, length=0.75)
+    # MyComposition[0].add_note(74, length=0.25)
+    # MyComposition[0].add_note(76, length=1)
+    # MyComposition[0].add_note(71, length=0.5)
+    # MyComposition[0].add_note(67, length=0.5)
+    # MyComposition[0].add_note(72, length=1)
+    # MyComposition[0].add_note(71, length=0.75)
+    # MyComposition[0].add_note(69, length=0.25)
+    # MyComposition[0].add_note(71, length=1)
+    # MyComposition[0].add_note(64, length=0.5)
+    # MyComposition[0].add_note(64, length=0.5)
+    # MyComposition[0].add_note(69, length=1)
+    # MyComposition[0].add_note(67, length=0.75)
+    # MyComposition[0].add_note(65, length=0.25)
+    # MyComposition[0].add_note(67, length=1)
+    # MyComposition[0].add_note(60, length=0.75)
+    # MyComposition[0].add_note(60, length=0.25)
+    # MyComposition[0].add_note(72, length=1)
+    # MyComposition[0].add_note(71, length=0.75)
+    # MyComposition[0].add_note(69, length=0.25)
+    # MyComposition[0].add_note(67, length=2)
+    MyComposition[0].add_note(60, duration=0.5)
+    MyComposition[0].add_note(62, duration=0.5)
+    MyComposition[0].add_note(64, duration=0.5)
+    MyComposition[0].add_note(60, duration=0.5)
+    MyComposition[0].add_note(62, duration=1)
+    MyComposition[0].add_note(60, duration=1)
+    print(MyComposition[0])
+    print(MyComposition[0].notes)
+    print()
+    MyComposition[0].remove_note(1)
+    print(MyComposition[0])
+    print(MyComposition[0].notes)
     print()
     MyComposition.export_as_midi('test3.mid')
