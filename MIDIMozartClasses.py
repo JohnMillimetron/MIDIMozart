@@ -87,6 +87,18 @@ class Composition:
                     for i in note:
                         midi_file.addNote(0, self.channels.index(chanel), i.pitch, i.time, i.length,
                                           i.volume)
+                elif type(note) == TrillNote:
+                    for i in note:
+                        midi_file.addNote(0, self.channels.index(chanel), i.pitch, i.time, i.length,
+                                          i.volume)
+                elif type(note) == Glissando:
+                    for i in note:
+                        midi_file.addNote(0, self.channels.index(chanel), i.pitch, i.time, i.length,
+                                          i.volume)
+                elif type(note) == Chord:
+                    for i in note:
+                        midi_file.addNote(0, self.channels.index(chanel), i.pitch, i.time, i.length,
+                                          i.volume)
 
         try:
             with open(file_name, "wb") as output_file:
@@ -140,13 +152,20 @@ class Chanel:
             raise ValueError
         self.instrument = instrument
 
-    def add_note(self, pitch, type='default', time='auto', length=1, volume=100, duration=1):  # Добавляет ноту к дорожке
+    def add_note(self, *pitch, type='default', time='auto', length=1, volume=100,
+                 duration=1, etc=False):  # Добавляет ноту к дорожке
         if time == 'auto':
             time = self.calculate_length()
         if type == 'default':
-            self.notes.append(Note(pitch, time, length, volume, duration))
+            self.notes.append(Note(*pitch, time, length, volume, duration))
         elif type == 'tremolo':
-            self.notes.append(TremoloNote(pitch, time, length, volume, duration))
+            self.notes.append(TremoloNote(*pitch, time, length, volume, duration))
+        elif type == 'trill':
+            self.notes.append(TrillNote(*pitch, time, length, volume, duration))
+        elif type == 'gliss':
+            self.notes.append(Glissando(*pitch, time, length, volume, duration))
+        elif type == 'chord':
+            self.notes.append(Chord(*pitch, time, length, volume, duration, etc))
 
     def remove_note(self, note, autoshift=True):  # Удаляет ноту с дорожки
         rm_t, rm_d = self.notes[note].time, self.notes[note].length,
@@ -185,7 +204,7 @@ class Note:
         return self.name
 
     def __repr__(self):
-        return str(self.name) + ' - ' + str(self.length) + ' b.'
+        return str(self.name) + '-' + str(self.length) + 'b;'
 
 
 class NoteButton(QtWidgets.QPushButton):
@@ -205,6 +224,67 @@ class TremoloNote(Note):
     def __getitem__(self, item):
         return self.notes[item]
 
+    def __repr__(self):
+        return super().__repr__() + 'trem'
+
+
+class TrillNote(Note):
+    def __init__(self, pitch, time=1, length=1, volume=100, duration=1):
+        super().__init__(pitch, time, length, volume, duration)
+        self.count_of_notes = int(self.length // 0.125)
+        self.notes = []
+        for i in range(self.count_of_notes):
+            self.notes.append(
+                Note(self.pitch, self.time + i * 0.125, 0.125, self.volume, 0.125) if i % 2 == 0 else
+                Note(self.pitch + 2, self.time + i * 0.125, 0.125, self.volume, 0.125))
+
+    def __getitem__(self, item):
+        return self.notes[item]
+
+    def __repr__(self):
+        return super().__repr__() + 'trill'
+
+
+class Glissando(Note):
+    def __init__(self, pitch, pitch2, time=1, length=1, volume=100, duration=1):
+        super().__init__(pitch, time, length, volume, duration)
+        # self.count_of_notes = int(self.length // 0.125)
+        self.difference = abs(pitch2 - pitch) + 1
+        self.notes = []
+        if pitch2 > pitch:
+            for i in range(self.difference):
+                self.notes.append(Note(self.pitch + i, self.time + (self.length / self.difference) * i,
+                                       self.length / self.difference, self.volume, self.length / self.difference))
+        else:
+            for i in range(self.difference):
+                self.notes.append(Note(self.pitch - i, self.time + (self.length / self.difference) * i,
+                                       self.length / self.difference, self.volume, self.length / self.difference))
+
+    def __getitem__(self, item):
+        return self.notes[item]
+
+    def __repr__(self):
+        return f'{self.notes[0].__repr__().split("-")[0]}/' \
+               f'{self.notes[-1].__repr__().split("-")[0]}-{self.length}b;gliss'
+
+
+class Chord(Note):
+    def __init__(self, pitches, time=1, length=1, volume=100, duration=1, arpeggiato=False):
+        super().__init__(pitches[0], time, length, volume, duration)
+        self.notes = []
+        if not arpeggiato:
+            for i in pitches:
+                self.notes.append(Note(i, self.time, self.length, self.volume, self.length))
+        else:
+            for j, i in enumerate(pitches):
+                self.notes.append(Note(i, self.time + (0.125 * j), self.length - (0.125 * j),
+                                       self.volume, self.length - (0.125 * j)))
+
+    def __getitem__(self, item):
+        return self.notes[item]
+
+    def __repr__(self):
+        return f'{self.notes}-{self.length}b;chord'
 
 
 if __name__ == '__main__':
@@ -212,7 +292,8 @@ if __name__ == '__main__':
     print(MyComposition[0])
     print()
     MyComposition[0].set_tempo(120)
-    MyComposition[0].set_instrument(1)
+    MyComposition[0].set_instrument(26)
+
     # MyComposition[0].add_note(67, length=0.5)
     # MyComposition[0].add_note(72, length=1)
     # MyComposition[0].add_note(67, length=0.75)
@@ -259,12 +340,22 @@ if __name__ == '__main__':
     # MyComposition[0].add_note(71, length=0.75)
     # MyComposition[0].add_note(69, length=0.25)
     # MyComposition[0].add_note(67, length=2)
-    MyComposition[0].add_note(60, duration=0.5, type='tremolo')
-    MyComposition[0].add_note(62, duration=0.5, type='tremolo')
-    MyComposition[0].add_note(64, duration=0.5, type='tremolo')
-    MyComposition[0].add_note(60, duration=0.5, type='tremolo')
-    MyComposition[0].add_note(62, duration=1, type='tremolo')
-    MyComposition[0].add_note(60, duration=1, type='tremolo')
+
+    # MyComposition[0].add_note(60, duration=1, type='tremolo')
+    # MyComposition[0].add_note(62, duration=1, type='tremolo')
+    # MyComposition[0].add_note(64, duration=1, type='tremolo')
+    # MyComposition[0].add_note(60, duration=1, type='tremolo')
+    # MyComposition[0].add_note(62, duration=2, type='trill')
+    # MyComposition[0].add_note(60, duration=4, type='default')
+
+    MyComposition[0].add_note(60, 72, duration=2, type='gliss')
+    MyComposition[0].add_note(72, 60, duration=2, type='gliss')
+
+    MyComposition[0].add_note((60, 64, 67), duration=1, type='chord', etc=True)
+    MyComposition[0].add_note((65, 69, 72), duration=1, type='chord', etc=True)
+    MyComposition[0].add_note((67, 71, 74), duration=1, type='chord', etc=True)
+    MyComposition[0].add_note((60, 64, 67), duration=4, type='chord', etc=True)
+
     print(MyComposition[0])
     print(MyComposition[0].notes)
     MyComposition.export_as_midi('test3.mid')
