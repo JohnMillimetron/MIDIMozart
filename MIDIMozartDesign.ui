@@ -20,7 +20,7 @@
       <x>0</x>
       <y>750</y>
       <width>1920</width>
-      <height>271</height>
+      <height>266</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -1847,9 +1847,9 @@ color: rgb(255, 255, 255);</string>
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>0</y>
+      <y>30</y>
       <width>1921</width>
-      <height>611</height>
+      <height>581</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -3412,6 +3412,29 @@ color: rgb(255, 255, 255);</string>
       <string>bpm</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="QDunaevButton">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>10</y>
+       <width>81</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../Desktop/islands-retina-50.jpg</normaloff>../Desktop/islands-retina-50.jpg</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>75</width>
+       <height>75</height>
+      </size>
+     </property>
+    </widget>
     <zorder>duration_input</zorder>
     <zorder>instrument_input</zorder>
     <zorder>label_3</zorder>
@@ -3430,18 +3453,19 @@ color: rgb(255, 255, 255);</string>
     <zorder>label</zorder>
     <zorder>tempo_input</zorder>
     <zorder>label_2</zorder>
+    <zorder>QDunaevButton</zorder>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1920</width>
-     <height>25</height>
-    </rect>
+  <action name="actionProgramNumber">
+   <property name="text">
+    <string>ProgramNumber</string>
    </property>
-  </widget>
+  </action>
+  <action name="actionProgramNumber_ch_10">
+   <property name="text">
+    <string>ProgramNumber (ch. 10)</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

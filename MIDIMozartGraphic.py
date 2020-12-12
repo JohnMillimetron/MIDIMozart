@@ -63,6 +63,8 @@ class MainWindow(QMainWindow):
         self.tempo_input.valueChanged.connect(self.current_tempo_change)
         # self.instrument_input.valueChanged.connect(self.instrument_change)
 
+        self.channelsAreaWidget.setGeometry(0, 0, 16777216, 1280)
+
     # Обработчик нажатия клавиши фортепиано
     def key_clicked(self):
         MyComposition[int(self.chanel_input.value()) - 1].add_note(pitch=int(self.sender().text().split('\n')[1]),
