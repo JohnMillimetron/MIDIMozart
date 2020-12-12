@@ -73,12 +73,21 @@ class Composition:
 
     def export_as_midi(self, file_name):
         midi_file = MIDIFile(1)
+        # Перебираем каналы
         for chanel in self.channels:
             midi_file.addTempo(self.channels.index(chanel), 0, chanel.tempo)
             midi_file.addProgramChange(
                 tracknum=0, channel=self.channels.index(chanel), program=chanel.instrument, time=0)
+
+            # Перебираем ноты
             for note in chanel.notes:
-                midi_file.addNote(0, self.channels.index(chanel), note.pitch, note.time, note.length, note.volume)
+                if type(note) == Note:
+                    midi_file.addNote(0, self.channels.index(chanel), note.pitch, note.time, note.length, note.volume)
+                elif type(note) == TremoloNote:
+                    for i in note:
+                        midi_file.addNote(0, self.channels.index(chanel), i.pitch, i.time, i.length,
+                                          i.volume)
+
         try:
             with open(file_name, "wb") as output_file:
                 midi_file.writeFile(output_file)
@@ -131,10 +140,13 @@ class Chanel:
             raise ValueError
         self.instrument = instrument
 
-    def add_note(self, pitch, time='auto', length=1, volume=100, duration=1):  # Добавляет ноту к дорожке
+    def add_note(self, pitch, type='default', time='auto', length=1, volume=100, duration=1):  # Добавляет ноту к дорожке
         if time == 'auto':
             time = self.calculate_length()
-        self.notes.append(Note(pitch, time, length, volume, duration))
+        if type == 'default':
+            self.notes.append(Note(pitch, time, length, volume, duration))
+        elif type == 'tremolo':
+            self.notes.append(TremoloNote(pitch, time, length, volume, duration))
 
     def remove_note(self, note, autoshift=True):  # Удаляет ноту с дорожки
         rm_t, rm_d = self.notes[note].time, self.notes[note].length,
@@ -180,6 +192,19 @@ class NoteButton(QtWidgets.QPushButton):
     def __init__(self, note_number, ch_number, note_name):
         super().__init__()
         self.note_number, self.ch_number, self.note_name = note_number, ch_number, note_name
+
+
+class TremoloNote(Note):
+    def __init__(self, pitch, time=1, length=1, volume=100, duration=1):
+        super().__init__(pitch, time, length, volume, duration)
+        self.count_of_notes = int(self.length // 0.125)
+        self.notes = []
+        for i in range(self.count_of_notes):
+            self.notes.append(Note(self.pitch, self.time + i * 0.125, 0.125, self.volume, 0.125))
+
+    def __getitem__(self, item):
+        return self.notes[item]
+
 
 
 if __name__ == '__main__':
@@ -234,17 +259,12 @@ if __name__ == '__main__':
     # MyComposition[0].add_note(71, length=0.75)
     # MyComposition[0].add_note(69, length=0.25)
     # MyComposition[0].add_note(67, length=2)
-    MyComposition[0].add_note(60, duration=0.5)
-    MyComposition[0].add_note(62, duration=0.5)
-    MyComposition[0].add_note(64, duration=0.5)
-    MyComposition[0].add_note(60, duration=0.5)
-    MyComposition[0].add_note(62, duration=1)
-    MyComposition[0].add_note(60, duration=1)
+    MyComposition[0].add_note(60, duration=0.5, type='tremolo')
+    MyComposition[0].add_note(62, duration=0.5, type='tremolo')
+    MyComposition[0].add_note(64, duration=0.5, type='tremolo')
+    MyComposition[0].add_note(60, duration=0.5, type='tremolo')
+    MyComposition[0].add_note(62, duration=1, type='tremolo')
+    MyComposition[0].add_note(60, duration=1, type='tremolo')
     print(MyComposition[0])
     print(MyComposition[0].notes)
-    print()
-    MyComposition[0].remove_note(1)
-    print(MyComposition[0])
-    print(MyComposition[0].notes)
-    print()
     MyComposition.export_as_midi('test3.mid')
