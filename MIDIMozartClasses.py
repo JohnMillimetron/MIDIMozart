@@ -153,7 +153,7 @@ class Chanel:
         self.instrument = instrument
 
     def add_note(self, *pitch, type='default', time='auto', length=1, volume=100,
-                 duration=1, etc=False):  # Добавляет ноту к дорожке
+                 duration=1):  # Добавляет ноту к дорожке
         if time == 'auto':
             time = self.calculate_length()
         if type == 'default':
@@ -164,8 +164,14 @@ class Chanel:
             self.notes.append(TrillNote(*pitch, time, length, volume, duration))
         elif type == 'gliss':
             self.notes.append(Glissando(*pitch, time, length, volume, duration))
-        elif type == 'chord':
-            self.notes.append(Chord(*pitch, time, length, volume, duration, etc))
+
+    def add_chord(self, *args, arpeggiato=False, time='auto', length=1, volume=100, duration=1):
+        # add_chord(60, 'maj', length=1)    | args == [60, 'maj']
+        # add_chord((60, 64, 67), length=1) | args == [(60, 64, 67)]
+        if time == 'auto':
+            time = self.calculate_length()
+        self.notes.append(
+            Chord(*args, time=time, length=duration, duration=duration, volume=volume, arpeggiato=arpeggiato))
 
     def remove_note(self, note, autoshift=True):  # Удаляет ноту с дорожки
         rm_t, rm_d = self.notes[note].time, self.notes[note].length,
@@ -207,17 +213,12 @@ class Note:
         return str(self.name) + '-' + str(self.length) + 'b;'
 
 
-class NoteButton(QtWidgets.QPushButton):
-    def __init__(self, note_number, ch_number, note_name):
-        super().__init__()
-        self.note_number, self.ch_number, self.note_name = note_number, ch_number, note_name
-
-
 class TremoloNote(Note):
     def __init__(self, pitch, time=1, length=1, volume=100, duration=1):
         super().__init__(pitch, time, length, volume, duration)
         self.count_of_notes = int(self.length // 0.125)
         self.notes = []
+        self.name = f'trem.\n{self.name}'
         for i in range(self.count_of_notes):
             self.notes.append(Note(self.pitch, self.time + i * 0.125, 0.125, self.volume, 0.125))
 
@@ -233,6 +234,7 @@ class TrillNote(Note):
         super().__init__(pitch, time, length, volume, duration)
         self.count_of_notes = int(self.length // 0.125)
         self.notes = []
+        self.name = f'trill\n{self.name}'
         for i in range(self.count_of_notes):
             self.notes.append(
                 Note(self.pitch, self.time + i * 0.125, 0.125, self.volume, 0.125) if i % 2 == 0 else
@@ -259,6 +261,7 @@ class Glissando(Note):
             for i in range(self.difference):
                 self.notes.append(Note(self.pitch - i, self.time + (self.length / self.difference) * i,
                                        self.length / self.difference, self.volume, self.length / self.difference))
+        self.name = f'gliss\n{self.notes[0].name}-{self.notes[-1].name}'
 
     def __getitem__(self, item):
         return self.notes[item]
@@ -269,14 +272,39 @@ class Glissando(Note):
 
 
 class Chord(Note):
-    def __init__(self, pitches, time=1, length=1, volume=100, duration=1, arpeggiato=False):
-        super().__init__(pitches[0], time, length, volume, duration)
+    def __init__(self, *args, time=1, length=1, volume=100, duration=1, arpeggiato=False):
+        self.pitches = []
+        if len(args) == 1:
+            self.pitches = args[0]
+            super().__init__(self.pitches[0], time, length, volume, duration)
+        else:
+            self.root_pitch = args[0]
+            self.structure = args[1]
+            super().__init__(self.root_pitch, time, length, volume, duration)
+            self.notes = []
+
+            if self.structure == 'maj':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 7))
+            elif self.structure == 'min':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 3, self.root_pitch + 7))
+            elif self.structure == 'aug':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 8))
+            elif self.structure == 'dim':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 3, self.root_pitch + 6))
+            elif self.structure == '7':  # Малый мажорный
+                self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 7, self.root_pitch + 10))
+            elif self.structure == 'sus2':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 2, self.root_pitch + 7))
+            elif self.structure == 'sus4':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 5, self.root_pitch + 7))
+
         self.notes = []
-        if not arpeggiato:
-            for i in pitches:
+        # self.name = f'chord\n{" ".join(map(lambda x: x.name, self.notes))}'
+        if not arpeggiato or self.length < len(self.pitches) * 0.125:
+            for i in self.pitches:
                 self.notes.append(Note(i, self.time, self.length, self.volume, self.length))
         else:
-            for j, i in enumerate(pitches):
+            for j, i in enumerate(self.pitches):
                 self.notes.append(Note(i, self.time + (0.125 * j), self.length - (0.125 * j),
                                        self.volume, self.length - (0.125 * j)))
 
@@ -287,11 +315,17 @@ class Chord(Note):
         return f'{self.notes}-{self.length}b;chord'
 
 
+class NoteButton(QtWidgets.QPushButton):
+    def __init__(self, note_number, ch_number, note_name):
+        super().__init__()
+        self.note_number, self.ch_number, self.note_name = note_number, ch_number, note_name
+
+
 if __name__ == '__main__':
     MyComposition = Composition()
     print(MyComposition[0])
     print()
-    MyComposition[0].set_tempo(120)
+    MyComposition[0].set_tempo(480)
     MyComposition[0].set_instrument(26)
 
     # MyComposition[0].add_note(67, length=0.5)
@@ -348,13 +382,27 @@ if __name__ == '__main__':
     # MyComposition[0].add_note(62, duration=2, type='trill')
     # MyComposition[0].add_note(60, duration=4, type='default')
 
-    MyComposition[0].add_note(60, 72, duration=2, type='gliss')
-    MyComposition[0].add_note(72, 60, duration=2, type='gliss')
+    # MyComposition[0].add_note(60, 72, duration=2, type='gliss')
+    # MyComposition[0].add_note(72, 60, duration=2, type='gliss')
 
-    MyComposition[0].add_note((60, 64, 67), duration=1, type='chord', etc=True)
-    MyComposition[0].add_note((65, 69, 72), duration=1, type='chord', etc=True)
-    MyComposition[0].add_note((67, 71, 74), duration=1, type='chord', etc=True)
-    MyComposition[0].add_note((60, 64, 67), duration=4, type='chord', etc=True)
+    MyComposition[0].add_chord((60, 64, 67), duration=1, arpeggiato=True)
+    MyComposition[0].add_chord((65, 69, 72), duration=1, arpeggiato=True)
+    MyComposition[0].add_chord((67, 71, 74), duration=1, arpeggiato=True)
+    MyComposition[0].add_chord((60, 64, 67), duration=4, arpeggiato=True)
+
+    MyComposition[0].add_chord((60, 64, 67), duration=1)
+    MyComposition[0].add_chord((65, 69, 72), duration=1)
+    MyComposition[0].add_chord((67, 71, 74), duration=1)
+    MyComposition[0].add_chord((60, 64, 67), duration=4)
+
+    MyComposition[0].add_chord(60, 'maj', duration=1)
+    MyComposition[0].add_chord(60, 'sus2', duration=1)
+    MyComposition[0].add_chord(60, 'sus4', duration=1)
+    MyComposition[0].add_chord(60, 'sus2', duration=1)
+    MyComposition[0].add_chord(60, 'maj', duration=4, arpeggiato=True)
+
+    MyComposition[0].add_chord(60, 'dim', duration=0.25)
+    MyComposition[0].add_chord(60, 'aug', duration=0.25)
 
     print(MyComposition[0])
     print(MyComposition[0].notes)
