@@ -401,8 +401,8 @@ if __name__ == '__main__':
     MyComposition[0].add_chord(60, 'sus2', duration=1)
     MyComposition[0].add_chord(60, 'maj', duration=4, arpeggiato=True)
 
-    MyComposition[0].add_chord(60, 'dim', duration=0.25)
-    MyComposition[0].add_chord(60, 'aug', duration=0.25)
+    # MyComposition[0].add_chord(60, 'dim', duration=0.25)
+    # MyComposition[0].add_chord(60, 'aug', duration=0.25)
 
     print(MyComposition[0])
     print(MyComposition[0].notes)

@@ -19,6 +19,7 @@ class MainWindow(QMainWindow):
 
         super().__init__()
         uic.loadUi('MIDIMozartDesign.ui', self)  # Загружаем дизайн
+        self.setWindowTitle('MIDIMozart')
 
         self.current_duration = 1
         self.current_chanel = 1
