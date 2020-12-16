@@ -283,9 +283,9 @@ class Chord(Note):
             super().__init__(self.root_pitch, time, length, volume, duration)
             self.notes = []
 
-            if self.structure == 'maj':
+            if self.structure == 'major':
                 self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 7))
-            elif self.structure == 'min':
+            elif self.structure == 'minor':
                 self.pitches.extend((self.root_pitch, self.root_pitch + 3, self.root_pitch + 7))
             elif self.structure == 'aug':
                 self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 8))
@@ -318,7 +318,23 @@ class Chord(Note):
 class NoteButton(QtWidgets.QPushButton):
     def __init__(self, note_number, ch_number, note_name):
         super().__init__()
-        self.note_number, self.ch_number, self.note_name = note_number, ch_number, note_name
+        self.note_number, self.ch_number, self.note_name \
+            = note_number, ch_number, note_name
+
+
+def name_to_pitch(name):
+    names_and_notes = {name: pitch for pitch, name in NOTES_AND_NAMES.items()}
+    pitch = names_and_notes.get(name[:-1]) + 12 * int(name[-1])
+    return pitch
+
+
+def pitch_to_name(pitch):
+    for diapason, octave in NOTE_NUMBERS_AND_OCTAVES.items():
+        if pitch in diapason:
+            octave = NOTE_NUMBERS_AND_OCTAVES.get(diapason)
+            break
+    name = NOTES_AND_NAMES.get(pitch - 12 * int(octave)) + octave
+    return name
 
 
 if __name__ == '__main__':
@@ -395,11 +411,11 @@ if __name__ == '__main__':
     MyComposition[0].add_chord((67, 71, 74), duration=1)
     MyComposition[0].add_chord((60, 64, 67), duration=4)
 
-    MyComposition[0].add_chord(60, 'maj', duration=1)
+    MyComposition[0].add_chord(60, 'major', duration=1)
     MyComposition[0].add_chord(60, 'sus2', duration=1)
     MyComposition[0].add_chord(60, 'sus4', duration=1)
     MyComposition[0].add_chord(60, 'sus2', duration=1)
-    MyComposition[0].add_chord(60, 'maj', duration=4, arpeggiato=True)
+    MyComposition[0].add_chord(60, 'major', duration=4, arpeggiato=True)
 
     # MyComposition[0].add_chord(60, 'dim', duration=0.25)
     # MyComposition[0].add_chord(60, 'aug', duration=0.25)

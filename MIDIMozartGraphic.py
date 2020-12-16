@@ -1,8 +1,9 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QSizePolicy, QWidget, QFrame
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QSizePolicy, QWidget, QFrame, \
+    QLineEdit, QRadioButton
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtCore import QCoreApplication, Qt, QRect
-from MIDIMozartClasses import Composition, NOTES_AND_NAMES_is, NOTE_NUMBERS_AND_OCTAVES, NoteButton
+from MIDIMozartClasses import *
 from MIDIMozartDesign import Ui_MIDIMozart
 
 # pyuic5 MIDIMozartDesign.ui -o MIDIMozartDesign.py
@@ -24,6 +25,9 @@ class MainWindow(QMainWindow):
         self.current_duration = 1
         self.current_chanel = 1
         self.current_tempo = 120
+
+        self.writing_chord = False
+        self.manual_chord_notes = []
 
         # Привязка клавиш к обработчику
         for i in range(21, 109):
@@ -62,16 +66,19 @@ class MainWindow(QMainWindow):
         self.create_button.clicked.connect(self.create_midi)
         self.chanel_input.valueChanged.connect(self.current_chanel_change)
         self.tempo_input.valueChanged.connect(self.current_tempo_change)
-        # self.instrument_input.valueChanged.connect(self.instrument_change)
+        self.chord_ready_button.clicked.connect(self.manual_chord_paste)
+        self.manual_chord_clear_button.clicked.connect(self.manual_chord_clear)
 
         self.channelsAreaWidget.setGeometry(0, 0, 16777216, 1280)
 
     # Обработчик нажатия клавиши фортепиано
     def key_clicked(self):
-        MyComposition[int(self.chanel_input.value()) - 1].add_note(pitch=int(self.sender().text().split('\n')[1]),
-                                                                   duration=float(self.current_duration))
-        self.make_button(note_name=self.sender().text().split('\n')[0], size=int(self.current_duration * 100),
-                         chanel_number=int(self.chanel_input.value()))
+        self.read_type_of_note(int(self.sender().text().split('\n')[1]))
+
+        # MyComposition[int(self.chanel_input.value()) - 1].add_note(pitch=int(self.sender().text().split('\n')[1]),
+        #                                                            duration=float(self.current_duration))
+        # self.make_button(note_name=self.sender().text().split('\n')[0], size=int(self.current_duration * 100),
+        #                  chanel_number=int(self.chanel_input.value()))
 
     # Отрисовывает графическое изображение ноты в канале
     def make_button(self, size, note_name, chanel_number, note_number=None):
@@ -97,18 +104,6 @@ class MainWindow(QMainWindow):
         self.chanel_layouts[ch_n - 1].removeWidget(self.sender())
         self.chanel_buttons[ch_n - 1].remove(self.chanel_buttons[ch_n - 1][note_n - 1])
 
-        # for i in range(self.chanel_layouts[ch_n].count()):
-        #     self.chanel_layouts[ch_n].itemAt(i).note_number = i + 1
-
-        # for i in reversed(range(self.chanel_layouts[ch_n - 1].count())):
-        #     widgetToRemove = self.chanel_layouts[ch_n - 1].itemAt(i).widget()
-        #     self.chanel_layouts[ch_n - 1].removeWidget(widgetToRemove)
-        #     widgetToRemove.setParent(None)
-        #
-        # for i, note in enumerate(MyComposition[ch_n - 1]):
-        #     self.make_button(note_name=note.name, size=int(note.duration * 100), note_number=i + 1,
-        #                      chanel_number=ch_n)
-
     # Обработчик смены длительности
     def duration_button_clicked(self):
         temp = {"1": 4, "2": 2, "2.": 3, "4": 1, "4.": 1.5, "8": 0.5, "8.": 0.75, "16": 0.25, "16.": 0.375}
@@ -121,6 +116,61 @@ class MainWindow(QMainWindow):
     def current_tempo_change(self):
         MyComposition.set_tempo(self.tempo_input.value())
         self.current_tempo = int(self.tempo_input.value())
+
+    def read_type_of_note(self, pitch):
+        # Вызывается при нажатии клавиши на фо-но, считывает параметры того, что нужно добавить на канал
+        # Если ожидается нажатие дополнительных клавиш для завершения действия, возвращает pitch
+        if self.note_radio_button.isChecked():
+            if self.default_note_button.isChecked():
+                MyComposition[self.current_chanel - 1].add_note(pitch, duration=float(self.current_duration))
+                self.make_button(note_name=pitch_to_name(pitch), size=int(self.current_duration * 100),
+                                 chanel_number=self.current_chanel)
+            elif self.trem_note_button.isChecked():
+                MyComposition[self.current_chanel - 1].add_note(pitch, duration=float(self.current_duration),
+                                                                type='tremolo')
+                self.make_button(note_name=f'{pitch_to_name(pitch)}\ntremolo', size=int(self.current_duration * 100),
+                                 chanel_number=self.current_chanel)
+            elif self.trill_note_button.isChecked():
+                MyComposition[self.current_chanel - 1].add_note(pitch, duration=float(self.current_duration),
+                                                                type='trill')
+                self.make_button(note_name=f'{pitch_to_name(pitch)}\ntrill', size=int(self.current_duration * 100),
+                                 chanel_number=self.current_chanel)
+
+        elif self.chord_radio_button.isChecked():
+
+            if self.manual_chord_button.isChecked():
+                self.manual_chord_line.setText(pitch_to_name(pitch)
+                                               if self.manual_chord_line.text() == 'Notes will appear here...'
+                                               else self.manual_chord_line.text() + ' ' + pitch_to_name(pitch))
+
+                self.manual_chord_notes.append(pitch)
+                return None
+            elif self.auto_chord_button.isChecked():
+                arpeggiato = self.chord_arpeggiato_button.isChecked()
+                MyComposition[self.current_chanel - 1].add_chord(pitch,
+                                                                 self.chord_structure_input.currentText().lower(),
+                                                                 duration=self.current_duration,
+                                                                 arpeggiato=arpeggiato)
+                self.make_button(
+                    note_name=f'Chord\n{pitch_to_name(pitch) + self.chord_structure_input.currentText()}'
+                              f'\n{"arpeggiato" if arpeggiato else ""}',
+                    size=int(self.current_duration * 100), chanel_number=self.current_chanel)
+
+        elif self.gliss_radio_button.isChecked():
+            return pitch
+
+    def manual_chord_paste(self):
+        if self.manual_chord_line.text() != 'Notes will appear here...' \
+                and len(self.manual_chord_line.text().split()) > 1:
+            pitches = tuple(map(lambda x: name_to_pitch(x), self.manual_chord_line.text().split()))
+            arpeggiato = self.chord_arpeggiato_button.isChecked()
+            MyComposition[self.current_chanel - 1].add_chord(pitches, duration=self.current_duration,
+                                                             arpeggiato=arpeggiato)
+            self.make_button(note_name=f'Chord\n{self.manual_chord_line.text()}\n{"arpeggiato" if arpeggiato else ""}',
+                             size=int(self.current_duration * 100), chanel_number=self.current_chanel)
+
+    def manual_chord_clear(self):
+        self.manual_chord_line.setText('Notes will appear here...')
 
     # Обработчик клавиатуры
     def keyPressEvent(self, event):

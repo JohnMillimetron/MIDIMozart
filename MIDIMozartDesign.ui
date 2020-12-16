@@ -3303,7 +3303,7 @@ chanel</string>
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QRadioButton" name="trem_notte_button">
+     <widget class="QRadioButton" name="trem_note_button">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -3335,7 +3335,7 @@ chanel</string>
       <rect>
        <x>400</x>
        <y>30</y>
-       <width>171</width>
+       <width>191</width>
        <height>121</height>
       </rect>
      </property>
@@ -3429,7 +3429,7 @@ chanel</string>
        <string>Arpeggiato</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit">
+     <widget class="QLineEdit" name="manual_chord_line">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -3445,6 +3445,39 @@ chanel</string>
        <bool>true</bool>
       </property>
      </widget>
+     <widget class="QPushButton" name="chord_ready_button">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>20</y>
+        <width>71</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Paste</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="manual_chord_clear_button">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>40</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>clr</string>
+      </property>
+     </widget>
+     <zorder>manual_chord_clear_button</zorder>
+     <zorder>chord_ready_button</zorder>
+     <zorder>manual_chord_button</zorder>
+     <zorder>auto_chord_button</zorder>
+     <zorder>chord_structure_input</zorder>
+     <zorder>chord_arpeggiato_button</zorder>
+     <zorder>manual_chord_line</zorder>
     </widget>
     <widget class="QGroupBox" name="groupBox">
      <property name="geometry">
