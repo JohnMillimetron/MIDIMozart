@@ -3147,8 +3147,8 @@ color: rgb(255, 255, 255);</string>
     <widget class="QPushButton" name="create_button">
      <property name="geometry">
       <rect>
-       <x>1070</x>
-       <y>90</y>
+       <x>1050</x>
+       <y>80</y>
        <width>111</width>
        <height>41</height>
       </rect>
@@ -3686,8 +3686,8 @@ chanel</string>
     <widget class="QRadioButton" name="gliss_radio_button">
      <property name="geometry">
       <rect>
-       <x>480</x>
-       <y>10</y>
+       <x>600</x>
+       <y>40</y>
        <width>95</width>
        <height>21</height>
       </rect>
@@ -3699,6 +3699,37 @@ chanel</string>
      </property>
      <property name="text">
       <string>Glissando</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="output_file_name_input">
+     <property name="geometry">
+      <rect>
+       <x>1050</x>
+       <y>120</y>
+       <width>113</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>test4</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="rest_button">
+     <property name="geometry">
+      <rect>
+       <x>600</x>
+       <y>70</y>
+       <width>93</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Add rest</string>
      </property>
     </widget>
    </widget>

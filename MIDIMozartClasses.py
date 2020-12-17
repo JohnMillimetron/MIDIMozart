@@ -99,6 +99,8 @@ class Composition:
                     for i in note:
                         midi_file.addNote(0, self.channels.index(chanel), i.pitch, i.time, i.length,
                                           i.volume)
+                elif type(note) == Rest:
+                    pass
 
         try:
             with open(file_name, "wb") as output_file:
@@ -164,6 +166,8 @@ class Chanel:
             self.notes.append(TrillNote(*pitch, time, length, volume, duration))
         elif type == 'gliss':
             self.notes.append(Glissando(*pitch, time, length, volume, duration))
+        elif type == 'rest':
+            self.notes.append(Rest(duration, time))
 
     def add_chord(self, *args, arpeggiato=False, time='auto', length=1, volume=100, duration=1):
         # add_chord(60, 'maj', length=1)    | args == [60, 'maj']
@@ -313,6 +317,18 @@ class Chord(Note):
 
     def __repr__(self):
         return f'{self.notes}-{self.length}b;chord'
+
+
+class Rest:
+    def __init__(self, duration=1, time=1):
+        self.duration, self.time, self.length = duration, time, duration
+        self.name = 'R'
+
+    def __str__(self):
+        return f'Rest-{self.duration}b.'
+
+    def __repr__(self):
+        return f'R'
 
 
 class NoteButton(QtWidgets.QPushButton):

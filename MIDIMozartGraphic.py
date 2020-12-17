@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         self.current_chanel = 1
         self.current_tempo = 120
 
-        self.writing_chord = False
+        self.glissando_first_note = []
         self.manual_chord_notes = []
 
         # Привязка клавиш к обработчику
@@ -68,17 +68,13 @@ class MainWindow(QMainWindow):
         self.tempo_input.valueChanged.connect(self.current_tempo_change)
         self.chord_ready_button.clicked.connect(self.manual_chord_paste)
         self.manual_chord_clear_button.clicked.connect(self.manual_chord_clear)
+        self.rest_button.clicked.connect(self.add_rest)
 
         self.channelsAreaWidget.setGeometry(0, 0, 16777216, 1280)
 
     # Обработчик нажатия клавиши фортепиано
     def key_clicked(self):
         self.read_type_of_note(int(self.sender().text().split('\n')[1]))
-
-        # MyComposition[int(self.chanel_input.value()) - 1].add_note(pitch=int(self.sender().text().split('\n')[1]),
-        #                                                            duration=float(self.current_duration))
-        # self.make_button(note_name=self.sender().text().split('\n')[0], size=int(self.current_duration * 100),
-        #                  chanel_number=int(self.chanel_input.value()))
 
     # Отрисовывает графическое изображение ноты в канале
     def make_button(self, size, note_name, chanel_number, note_number=None):
@@ -120,6 +116,15 @@ class MainWindow(QMainWindow):
     def read_type_of_note(self, pitch):
         # Вызывается при нажатии клавиши на фо-но, считывает параметры того, что нужно добавить на канал
         # Если ожидается нажатие дополнительных клавиш для завершения действия, возвращает pitch
+        if self.glissando_first_note:
+            MyComposition[self.current_chanel - 1].add_note(self.glissando_first_note, pitch,
+                                                            duration=float(self.current_duration), type='gliss')
+            self.make_button(note_name=f'{pitch_to_name(self.glissando_first_note)}-{pitch_to_name(pitch)}\nGliss',
+                             size=int(self.current_duration * 100),
+                             chanel_number=self.current_chanel)
+            self.glissando_first_note = None
+            return
+
         if self.note_radio_button.isChecked():
             if self.default_note_button.isChecked():
                 MyComposition[self.current_chanel - 1].add_note(pitch, duration=float(self.current_duration))
@@ -144,7 +149,6 @@ class MainWindow(QMainWindow):
                                                else self.manual_chord_line.text() + ' ' + pitch_to_name(pitch))
 
                 self.manual_chord_notes.append(pitch)
-                return None
             elif self.auto_chord_button.isChecked():
                 arpeggiato = self.chord_arpeggiato_button.isChecked()
                 MyComposition[self.current_chanel - 1].add_chord(pitch,
@@ -157,7 +161,12 @@ class MainWindow(QMainWindow):
                     size=int(self.current_duration * 100), chanel_number=self.current_chanel)
 
         elif self.gliss_radio_button.isChecked():
-            return pitch
+            self.glissando_first_note = pitch
+
+    def add_rest(self):
+        MyComposition[self.current_chanel - 1].add_note(duration=self.current_duration, type='rest')
+        self.make_button(note_name='Rest', size=int(self.current_duration * 100),
+                         chanel_number=self.current_chanel)
 
     def manual_chord_paste(self):
         if self.manual_chord_line.text() != 'Notes will appear here...' \
@@ -174,30 +183,63 @@ class MainWindow(QMainWindow):
 
     # Обработчик клавиатуры
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Z:
+        key = event.key()
+        if key == Qt.Key_Z:
             self.C4.click()
-        elif event.key() == Qt.Key_S:
+        elif key == Qt.Key_S:
             self.Cis4.click()
-        elif event.key() == Qt.Key_X:
+        elif key == Qt.Key_X:
             self.D4.click()
-        elif event.key() == Qt.Key_D:
+        elif key == Qt.Key_D:
             self.Dis4.click()
-        elif event.key() == Qt.Key_C:
+        elif key == Qt.Key_C:
             self.E4.click()
-        elif event.key() == Qt.Key_V:
+        elif key == Qt.Key_V:
             self.F4.click()
-        elif event.key() == Qt.Key_G:
+        elif key == Qt.Key_G:
             self.Fis4.click()
-        elif event.key() == Qt.Key_B:
+        elif key == Qt.Key_B:
             self.G4.click()
-        elif event.key() == Qt.Key_H:
+        elif key == Qt.Key_H:
             self.Gis4.click()
-        elif event.key() == Qt.Key_N:
+        elif key == Qt.Key_N:
             self.A4.click()
-        elif event.key() == Qt.Key_J:
+        elif key == Qt.Key_J:
             self.B4.click()
-        elif event.key() == Qt.Key_M:
+        elif key == Qt.Key_M:
             self.H4.click()
+        elif key == Qt.Key_Q or key == Qt.Key_Comma:
+            self.C5.click()
+        elif key == Qt.Key_2 or key == Qt.Key_L:
+            self.Cis5.click()
+        elif key == Qt.Key_W or key == Qt.Key_Period:
+            self.D5.click()
+        elif key == Qt.Key_3 or key == Qt.Key_Semicolon:
+            self.Dis5.click()
+        elif key == Qt.Key_E or key == Qt.Key_Slash:
+            self.E5.click()
+        elif key == Qt.Key_R:
+            self.F5.click()
+        elif key == Qt.Key_5:
+            self.Fis5.click()
+        elif key == Qt.Key_T:
+            self.G5.click()
+        elif key == Qt.Key_6:
+            self.Gis5.click()
+        elif key == Qt.Key_Y:
+            self.A5.click()
+        elif key == Qt.Key_7:
+            self.B5.click()
+        elif key == Qt.Key_U:
+            self.H5.click()
+        elif key == Qt.Key_I:
+            self.C6.click()
+        elif key == Qt.Key_Space:
+            self.rest_button.click()
+        elif key == Qt.Key_Backspace:
+            if self.chanel_buttons[self.current_chanel - 1]:
+                self.chanel_layouts[self.current_chanel - 1].itemAt(
+                    len(self.chanel_buttons[self.current_chanel - 1]) - 1).widget().click()
 
     # Обработчик смены инструмента
     def instrument_change(self):
@@ -206,7 +248,7 @@ class MainWindow(QMainWindow):
     # Создаёт MIDI-файл
     def create_midi(self):
         print(MyComposition)
-        MyComposition.export_as_midi('test4.mid')
+        MyComposition.export_as_midi(f'{self.output_file_name_input.text()}.mid')
 
 
 if __name__ == '__main__':
