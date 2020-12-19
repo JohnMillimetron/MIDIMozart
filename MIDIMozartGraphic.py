@@ -1,6 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QSizePolicy, QWidget, QFrame, \
-    QLineEdit, QRadioButton
+    QLineEdit, QRadioButton, QFileDialog, QLabel
+from PyQt5.QtGui import QPixmap
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtCore import QCoreApplication, Qt, QRect
 from MIDIMozartClasses import *
@@ -20,7 +21,7 @@ class MainWindow(QMainWindow):
 
         super().__init__()
         uic.loadUi('MIDIMozartDesign.ui', self)  # Загружаем дизайн
-        self.setWindowTitle('MIDIMozart')
+        self.setWindowTitle('MIDIMozart - untitled')
 
         self.current_duration = 1
         self.current_chanel = 1
@@ -54,13 +55,16 @@ class MainWindow(QMainWindow):
                                QHBoxLayout(self.chanel15notes_frame), QHBoxLayout(self.chanel16notes_frame)]
         self.chanel_buttons = [[] for _ in range(16)]
         for i in range(16):
-            eval(f'self.chanel_layouts[{i}].setGeometry(QRect(161, 0, 3840, 80))')
-            eval(f'self.chanel_layouts[{i}].setSpacing(0)')
-            eval(f'self.chanel_layouts[{i}].setAlignment(Qt.AlignLeft)')
-            eval(f'self.chanel_layouts[{i}].setContentsMargins(0, 0, 0, 0)')
+            eval(f'self.chanel{i + 1}notes_frame.setGeometry(QRect(160, 0, 1920, 81))')
+            self.chanel_layouts[i].setGeometry(QRect(161, 0, 1920, 80))
+            self.chanel_layouts[i].setSpacing(0)
+            self.chanel_layouts[i].setAlignment(Qt.AlignLeft)
+            self.chanel_layouts[i].setContentsMargins(0, 0, 0, 0)
 
         for i in range(16):
             eval(f'self.chanel{i + 1}instrument_input.valueChanged.connect(self.instrument_change)')
+        for i in range(3):
+            eval(f'self.chanel{i + 1}volume_input.valueChanged.connect(self.volume_change)')
 
         # Привязка кнопок к обработчикам
         self.create_button.clicked.connect(self.create_midi)
@@ -69,8 +73,11 @@ class MainWindow(QMainWindow):
         self.chord_ready_button.clicked.connect(self.manual_chord_paste)
         self.manual_chord_clear_button.clicked.connect(self.manual_chord_clear)
         self.rest_button.clicked.connect(self.add_rest)
+        self.interval_width_input.valueChanged.connect(self.interval_name_change)
 
-        self.channelsAreaWidget.setGeometry(0, 0, 16777216, 1280)
+        self.load_file_button.clicked.connect(self.open_file)
+
+        self.channelsAreaWidget.setGeometry(0, 0, 1920, 1280)
 
     # Обработчик нажатия клавиши фортепиано
     def key_clicked(self):
@@ -81,6 +88,21 @@ class MainWindow(QMainWindow):
         self.chanel_buttons[chanel_number - 1].append(
             NoteButton(note_number=len(MyComposition[chanel_number - 1].notes) if not note_number else
             note_number, ch_number=chanel_number, note_name=note_name))
+
+        print(self.chanel_layouts[self.current_chanel - 1].geometry().width())
+
+        if sum(map(lambda x: x.width(), self.chanel_buttons[self.current_chanel - 1])) + size > self.chanel_layouts[
+            self.current_chanel - 1].geometry().width():
+            curr_w = self.chanel_layouts[self.current_chanel - 1].geometry().width()
+            self.channelsAreaWidget.setGeometry(
+                QRect(0, 0, max(map(lambda x: x.geometry().width(), self.chanel_layouts)) + size, 1280))
+            eval(f'self.chanel{self.current_chanel}.setGeometry('
+                 f'QRect(0, 80 * (self.current_chanel - 1), curr_w + size, 81))')
+            eval(f'self.chanel{self.current_chanel}notes_frame.setGeometry(QRect(160, 0, curr_w + size, 81))')
+            self.chanel_layouts[self.current_chanel - 1].setGeometry(QRect(2, 2, curr_w + size, 77))
+
+        eval(f'print(self.chanel{self.current_chanel}notes_frame.geometry().width())')
+        print(self.chanel_layouts[self.current_chanel - 1].geometry().width(), end='\n\n')
 
         self.chanel_buttons[chanel_number - 1][-1].setText(
             str(self.chanel_buttons[chanel_number - 1][-1].note_name) + '\n' +
@@ -113,6 +135,24 @@ class MainWindow(QMainWindow):
         MyComposition.set_tempo(self.tempo_input.value())
         self.current_tempo = int(self.tempo_input.value())
 
+    def interval_name_change(self):
+        names = {
+            1: 'Малая секунда',
+            2: 'Большая секунда',
+            3: 'Малая терция',
+            4: 'Большая секунда',
+            5: 'Чистая кварта',
+            6: 'Тритон',
+            7: 'Чистая квинта',
+            8: 'Малая секста',
+            9: 'Большая секста',
+            10: 'Малая септима',
+            11: 'Большая секунда',
+            12: 'Октава'
+        }
+        width = self.interval_width_input.value()
+        self.interval_name.setText(names.get(width))
+
     def read_type_of_note(self, pitch):
         # Вызывается при нажатии клавиши на фо-но, считывает параметры того, что нужно добавить на канал
         # Если ожидается нажатие дополнительных клавиш для завершения действия, возвращает pitch
@@ -123,7 +163,6 @@ class MainWindow(QMainWindow):
                              size=int(self.current_duration * 100),
                              chanel_number=self.current_chanel)
             self.glissando_first_note = None
-            return
 
         if self.note_radio_button.isChecked():
             if self.default_note_button.isChecked():
@@ -144,24 +183,32 @@ class MainWindow(QMainWindow):
         elif self.chord_radio_button.isChecked():
 
             if self.manual_chord_button.isChecked():
-                self.manual_chord_line.setText(pitch_to_name(pitch)
-                                               if self.manual_chord_line.text() == 'Notes will appear here...'
-                                               else self.manual_chord_line.text() + ' ' + pitch_to_name(pitch))
+                if len(self.manual_chord_notes) <= 10:
+                    self.manual_chord_line.setText(pitch_to_name(pitch)
+                                                   if self.manual_chord_line.text() == 'Notes will appear here...'
+                                                   else self.manual_chord_line.text() + ' ' + pitch_to_name(pitch))
 
-                self.manual_chord_notes.append(pitch)
+                    self.manual_chord_notes.append(pitch)
             elif self.auto_chord_button.isChecked():
                 arpeggiato = self.chord_arpeggiato_button.isChecked()
                 MyComposition[self.current_chanel - 1].add_chord(pitch,
                                                                  self.chord_structure_input.currentText().lower(),
                                                                  duration=self.current_duration,
                                                                  arpeggiato=arpeggiato)
-                self.make_button(
-                    note_name=f'Chord\n{pitch_to_name(pitch) + self.chord_structure_input.currentText()}'
-                              f'\n{"arpeggiato" if arpeggiato else ""}',
-                    size=int(self.current_duration * 100), chanel_number=self.current_chanel)
+                a = " ".join(list(map(lambda x: x.name, MyComposition[self.current_chanel - 1][-1].notes)))
+                self.make_button(note_name=f'Chord\n{a}\n{"arpeggiato" if arpeggiato else ""}',
+                                 size=int(self.current_duration * 100), chanel_number=self.current_chanel)
 
         elif self.gliss_radio_button.isChecked():
             self.glissando_first_note = pitch
+
+        elif self.interval_radio_button.isChecked():
+            width = self.interval_width_input.value()
+            MyComposition[self.current_chanel - 1].add_chord((pitch, pitch + width),
+                                                             duration=float(self.current_duration))
+            self.make_button(
+                note_name=f'{pitch_to_name(pitch)} {pitch_to_name(pitch + width)}\n{self.interval_name.text()}',
+                size=int(self.current_duration * 100), chanel_number=self.current_chanel)
 
     def add_rest(self):
         MyComposition[self.current_chanel - 1].add_note(duration=self.current_duration, type='rest')
@@ -241,14 +288,55 @@ class MainWindow(QMainWindow):
                 self.chanel_layouts[self.current_chanel - 1].itemAt(
                     len(self.chanel_buttons[self.current_chanel - 1]) - 1).widget().click()
 
-    # Обработчик смены инструмента
     def instrument_change(self):
-        MyComposition[int(self.sender().objectName()[6]) - 1].set_instrument(int(self.sender().value()))
+        MyComposition[int(self.sender().objectName()[6]) - 1].set_instrument(int(self.sender().value()) - 1)
+
+    def volume_change(self):
+        MyComposition[int(self.sender().objectName()[6]) - 1].set_volume(int(self.sender().value()))
 
     # Создаёт MIDI-файл
     def create_midi(self):
         print(MyComposition)
         MyComposition.export_as_midi(f'{self.output_file_name_input.text()}.mid')
+
+    def open_file(self):
+        # Name
+        # tempo
+        # chanel_count
+        # ChanelName instrument
+        # notes_count
+        # type, pitches, time, length, volume
+        # type, pitches, time, length, volume
+
+        file_name = QFileDialog.getOpenFileName(
+            self, 'Выбрать файл', '',
+            'MIDIMozart file (*.mdmz);;Все файлы (*)')[0]
+
+        if not file_name:
+            return
+
+        with open(file_name, mode='r', encoding='utf-8') as file:
+            self.composition_name = file.readline().strip()
+            print(self.composition_name)
+            self.setWindowTitle('MIDIMozart - ' + self.composition_name)
+
+            self.current_tempo = int(file.readline())
+            print(self.current_tempo)
+
+            chanel_count = int(file.readline())
+            print(chanel_count)
+
+            for i in range(chanel_count):
+                name, instrument = file.readline().strip().split()
+                print(name, instrument)
+                MyComposition[i].set_name(name)
+                MyComposition[i].set_instrument(int(instrument))
+                eval(f'self.chanel{i + 1}name.setText(name)')
+                eval(f'self.chanel{i + 1}instrument_input.setValue(int(instrument) + 1)')
+                notes_count = int(file.readline())
+                print(notes_count)
+                for j in range(notes_count):
+                    print(file.readline().split())
 
 
 if __name__ == '__main__':

@@ -1869,7 +1869,7 @@ color: rgb(255, 255, 255);</string>
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>3840</width>
+       <width>1895</width>
        <height>1280</height>
       </rect>
      </property>
@@ -1887,7 +1887,7 @@ color: rgb(255, 255, 255);</string>
         <rect>
          <x>160</x>
          <y>0</y>
-         <width>3831</width>
+         <width>1920</width>
          <height>81</height>
         </rect>
        </property>
@@ -2047,7 +2047,7 @@ color: rgb(255, 255, 255);</string>
          <rect>
           <x>10</x>
           <y>40</y>
-          <width>141</width>
+          <width>51</width>
           <height>31</height>
          </rect>
         </property>
@@ -2056,6 +2056,25 @@ color: rgb(255, 255, 255);</string>
         </property>
         <property name="maximum">
          <number>128</number>
+        </property>
+       </widget>
+       <widget class="QSpinBox" name="chanel2volume_input">
+        <property name="geometry">
+         <rect>
+          <x>60</x>
+          <y>40</y>
+          <width>51</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>128</number>
+        </property>
+        <property name="value">
+         <number>100</number>
         </property>
        </widget>
       </widget>
@@ -2110,7 +2129,7 @@ color: rgb(255, 255, 255);</string>
          <rect>
           <x>10</x>
           <y>40</y>
-          <width>141</width>
+          <width>51</width>
           <height>31</height>
          </rect>
         </property>
@@ -2119,6 +2138,25 @@ color: rgb(255, 255, 255);</string>
         </property>
         <property name="maximum">
          <number>128</number>
+        </property>
+       </widget>
+       <widget class="QSpinBox" name="chanel3volume_input">
+        <property name="geometry">
+         <rect>
+          <x>60</x>
+          <y>40</y>
+          <width>51</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>128</number>
+        </property>
+        <property name="value">
+         <number>100</number>
         </property>
        </widget>
       </widget>
@@ -2186,7 +2224,7 @@ color: rgb(255, 255, 255);</string>
          <rect>
           <x>10</x>
           <y>40</y>
-          <width>141</width>
+          <width>51</width>
           <height>31</height>
          </rect>
         </property>
@@ -2262,7 +2300,7 @@ color: rgb(255, 255, 255);</string>
          <rect>
           <x>10</x>
           <y>40</y>
-          <width>141</width>
+          <width>51</width>
           <height>31</height>
          </rect>
         </property>
@@ -2338,7 +2376,7 @@ color: rgb(255, 255, 255);</string>
          <rect>
           <x>10</x>
           <y>40</y>
-          <width>141</width>
+          <width>51</width>
           <height>31</height>
          </rect>
         </property>
@@ -2414,7 +2452,7 @@ color: rgb(255, 255, 255);</string>
          <rect>
           <x>10</x>
           <y>40</y>
-          <width>141</width>
+          <width>51</width>
           <height>31</height>
          </rect>
         </property>
@@ -3236,7 +3274,7 @@ chanel</string>
     <widget class="QRadioButton" name="note_radio_button">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>310</x>
        <y>10</y>
        <width>95</width>
        <height>21</height>
@@ -3248,16 +3286,19 @@ chanel</string>
       </font>
      </property>
      <property name="text">
-      <string>Note</string>
+      <string>Нота</string>
      </property>
      <property name="checked">
       <bool>true</bool>
      </property>
+     <attribute name="buttonGroup">
+      <string notr="true">WhatToPaste</string>
+     </attribute>
     </widget>
     <widget class="QRadioButton" name="chord_radio_button">
      <property name="geometry">
       <rect>
-       <x>400</x>
+       <x>430</x>
        <y>10</y>
        <width>95</width>
        <height>21</height>
@@ -3269,23 +3310,26 @@ chanel</string>
       </font>
      </property>
      <property name="text">
-      <string>Chord</string>
+      <string>Аккорд</string>
      </property>
      <property name="checked">
       <bool>false</bool>
      </property>
+     <attribute name="buttonGroup">
+      <string notr="true">WhatToPaste</string>
+     </attribute>
     </widget>
     <widget class="QGroupBox" name="note_type_box">
      <property name="geometry">
       <rect>
-       <x>280</x>
+       <x>310</x>
        <y>30</y>
        <width>111</width>
        <height>121</height>
       </rect>
      </property>
      <property name="title">
-      <string>Note type</string>
+      <string>Тип ноты</string>
      </property>
      <widget class="QRadioButton" name="default_note_button">
       <property name="geometry">
@@ -3297,7 +3341,7 @@ chanel</string>
        </rect>
       </property>
       <property name="text">
-       <string>Default</string>
+       <string>Обычная</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -3313,7 +3357,7 @@ chanel</string>
        </rect>
       </property>
       <property name="text">
-       <string>Tremolo</string>
+       <string>Тремоло</string>
       </property>
      </widget>
      <widget class="QRadioButton" name="trill_note_button">
@@ -3326,21 +3370,21 @@ chanel</string>
        </rect>
       </property>
       <property name="text">
-       <string>Trill</string>
+       <string>Трель</string>
       </property>
      </widget>
     </widget>
     <widget class="QGroupBox" name="chord_type_box">
      <property name="geometry">
       <rect>
-       <x>400</x>
+       <x>430</x>
        <y>30</y>
        <width>191</width>
        <height>121</height>
       </rect>
      </property>
      <property name="title">
-      <string>Chord type</string>
+      <string>Настройки аккорда</string>
      </property>
      <widget class="QRadioButton" name="manual_chord_button">
       <property name="geometry">
@@ -3352,7 +3396,7 @@ chanel</string>
        </rect>
       </property>
       <property name="text">
-       <string>Manual</string>
+       <string>Вручную</string>
       </property>
      </widget>
      <widget class="QRadioButton" name="auto_chord_button">
@@ -3365,7 +3409,7 @@ chanel</string>
        </rect>
       </property>
       <property name="text">
-       <string>Auto</string>
+       <string>Авто</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -3387,7 +3431,27 @@ chanel</string>
       </item>
       <item>
        <property name="text">
+        <string>MajInv1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>MajInv2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Minor</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>MinInv1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>MinInv2</string>
        </property>
       </item>
       <item>
@@ -3455,7 +3519,7 @@ chanel</string>
        </rect>
       </property>
       <property name="text">
-       <string>Paste</string>
+       <string>Вставить</string>
       </property>
      </widget>
      <widget class="QPushButton" name="manual_chord_clear_button">
@@ -3482,14 +3546,14 @@ chanel</string>
     <widget class="QGroupBox" name="groupBox">
      <property name="geometry">
       <rect>
-       <x>20</x>
+       <x>10</x>
        <y>0</y>
-       <width>221</width>
+       <width>291</width>
        <height>151</height>
       </rect>
      </property>
      <property name="title">
-      <string>Duration</string>
+      <string>Длительности</string>
      </property>
      <widget class="QPushButton" name="duration_button_1">
       <property name="geometry">
@@ -3667,9 +3731,9 @@ chanel</string>
      <widget class="QLabel" name="duration_label">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>5</x>
         <y>120</y>
-        <width>211</width>
+        <width>281</width>
         <height>31</height>
        </rect>
       </property>
@@ -3679,16 +3743,16 @@ chanel</string>
        </font>
       </property>
       <property name="text">
-       <string>Current duration: 1 beat(s)</string>
+       <string>Текущая длительность: 1 beat(s)</string>
       </property>
      </widget>
     </widget>
     <widget class="QRadioButton" name="gliss_radio_button">
      <property name="geometry">
       <rect>
-       <x>600</x>
-       <y>40</y>
-       <width>95</width>
+       <x>630</x>
+       <y>100</y>
+       <width>111</width>
        <height>21</height>
       </rect>
      </property>
@@ -3698,8 +3762,11 @@ chanel</string>
       </font>
      </property>
      <property name="text">
-      <string>Glissando</string>
+      <string>Глиссандо</string>
      </property>
+     <attribute name="buttonGroup">
+      <string notr="true">WhatToPaste</string>
+     </attribute>
     </widget>
     <widget class="QLineEdit" name="output_file_name_input">
      <property name="geometry">
@@ -3717,8 +3784,8 @@ chanel</string>
     <widget class="QPushButton" name="rest_button">
      <property name="geometry">
       <rect>
-       <x>600</x>
-       <y>70</y>
+       <x>630</x>
+       <y>120</y>
        <width>93</width>
        <height>28</height>
       </rect>
@@ -3729,7 +3796,86 @@ chanel</string>
       </font>
      </property>
      <property name="text">
-      <string>Add rest</string>
+      <string>Пауза</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="interval_box">
+     <property name="geometry">
+      <rect>
+       <x>630</x>
+       <y>30</y>
+       <width>131</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Интервал</string>
+     </property>
+     <widget class="QSpinBox" name="interval_width_input">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>111</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>12</number>
+      </property>
+      <property name="value">
+       <number>7</number>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="interval_name">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>111</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Чистая квинта</string>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QRadioButton" name="interval_radio_button">
+     <property name="geometry">
+      <rect>
+       <x>630</x>
+       <y>10</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Интервал</string>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">WhatToPaste</string>
+     </attribute>
+    </widget>
+    <widget class="QTextBrowser" name="fucking_text">
+     <property name="geometry">
+      <rect>
+       <x>1620</x>
+       <y>10</y>
+       <width>291</width>
+       <height>141</height>
+      </rect>
      </property>
     </widget>
    </widget>
@@ -3788,7 +3934,7 @@ chanel</string>
 as</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_3">
+    <widget class="QPushButton" name="load_file_button">
      <property name="geometry">
       <rect>
        <x>110</x>
@@ -3816,4 +3962,7 @@ as</string>
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="WhatToPaste"/>
+ </buttongroups>
 </ui>

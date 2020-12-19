@@ -51,8 +51,8 @@ class Composition:
     Есть функция для конвертации в MIDI файл с помощью библиотеки midiutil.
     """
 
-    def __init__(self):
-        self.channels = [Chanel() for _ in range(16)]
+    def __init__(self, tempo=120):
+        self.channels = [Chanel(f'Chanel{i + 1}') for i in range(16)]
 
     def __getitem__(self, channel):
         return self.channels[channel]
@@ -117,15 +117,17 @@ class Chanel:
     Несколько классов Chanel могут быть объединены в классе Composition
     """
 
-    def __init__(self, tempo=120, instrument=0):
+    def __init__(self, name, tempo=120, instrument=0):
         self.tempo = tempo
         self.instrument = instrument
         self.last_note_time = 0
         self.length = 0
+        self.volume = 100
         self.notes = []
+        self.name = name
 
     def __str__(self):
-        return f"Instrument: {self.instrument}, tempo: {self.tempo}, " \
+        return f"Instrument: {self.instrument}, tempo: {self.tempo}, vol.: {self.volume} " \
                f"length: {self.calculate_length()} (in beats), {len(self.notes)} notes.\n" \
                f"{' '.join(map(lambda x: str(x), self.notes)) if self.notes else 'Empty'}"
 
@@ -154,18 +156,25 @@ class Chanel:
             raise ValueError
         self.instrument = instrument
 
-    def add_note(self, *pitch, type='default', time='auto', length=1, volume=100,
-                 duration=1):  # Добавляет ноту к дорожке
+    def set_volume(self, volume):
+        self.volume = volume
+        for note in self.notes:
+            note.volume = volume
+
+    def set_name(self, name):
+        self.name = name
+
+    def add_note(self, *pitch, type='default', time='auto', length=1, duration=1):  # Добавляет ноту к дорожке
         if time == 'auto':
             time = self.calculate_length()
         if type == 'default':
-            self.notes.append(Note(*pitch, time, length, volume, duration))
+            self.notes.append(Note(*pitch, time, length, self.volume, duration))
         elif type == 'tremolo':
-            self.notes.append(TremoloNote(*pitch, time, length, volume, duration))
+            self.notes.append(TremoloNote(*pitch, time, length, self.volume, duration))
         elif type == 'trill':
-            self.notes.append(TrillNote(*pitch, time, length, volume, duration))
+            self.notes.append(TrillNote(*pitch, time, length, self.volume, duration))
         elif type == 'gliss':
-            self.notes.append(Glissando(*pitch, time, length, volume, duration))
+            self.notes.append(Glissando(*pitch, time, length, self.volume, duration))
         elif type == 'rest':
             self.notes.append(Rest(duration, time))
 
@@ -289,8 +298,16 @@ class Chord(Note):
 
             if self.structure == 'major':
                 self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 7))
+            elif self.structure == 'majinv1':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 3, self.root_pitch + 8))
+            elif self.structure == 'majinv2':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 5, self.root_pitch + 9))
             elif self.structure == 'minor':
                 self.pitches.extend((self.root_pitch, self.root_pitch + 3, self.root_pitch + 7))
+            elif self.structure == 'mininv1':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 9))
+            elif self.structure == 'mininv2':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 5, self.root_pitch + 8))
             elif self.structure == 'aug':
                 self.pitches.extend((self.root_pitch, self.root_pitch + 4, self.root_pitch + 8))
             elif self.structure == 'dim':
