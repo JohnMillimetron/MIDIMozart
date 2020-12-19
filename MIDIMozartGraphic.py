@@ -79,29 +79,94 @@ class MainWindow(QMainWindow):
 
         self.channelsAreaWidget.setGeometry(0, 0, 1920, 1280)
 
-    # Обработчик нажатия клавиши фортепиано
-    def key_clicked(self):
-        self.read_type_of_note(int(self.sender().text().split('\n')[1]))
+    def open_file(self):
+        # Name
+        # tempo
+        # chanel_count
+        # ChanelName instrument volume
+        # notes_count
+        # type pitches time length mod
+        # type pitches time length mod
+        # type duration
+
+        file_name = QFileDialog.getOpenFileName(
+            self, 'Выбрать файл', '',
+            'MIDIMozart file (*.mdmz);;Все файлы (*)')[0]
+
+        if not file_name:
+            return
+
+        with open(file_name, mode='r', encoding='utf-8') as file:
+            MyComposition.clear()
+            self.composition_name = file.readline().strip()
+            print(self.composition_name)
+            self.setWindowTitle('MIDIMozart - ' + self.composition_name)
+
+            self.current_tempo = int(file.readline())
+            print(self.current_tempo)
+
+            chanel_count = int(file.readline())
+            print(chanel_count)
+
+            for i in range(chanel_count):
+                # self.current_chanel = i
+                print(self.current_chanel)
+                name, instrument, volume = file.readline().strip().split()
+                print(f'Chanel {i}: {name}, {instrument}, {volume}')
+                MyComposition[i].set_name(name)
+                MyComposition[i].set_instrument(int(instrument))
+                MyComposition[i].set_volume(int(volume))
+                eval(f'self.chanel{i + 1}name.setText(name)')
+                eval(f'self.chanel{i + 1}instrument_input.setValue(int(instrument) + 1)')
+                notes_count = int(file.readline())
+                print(notes_count)
+                for j in range(notes_count):
+                    line = file.readline().split()
+                    print(line)
+
+                    if line[0] == 'n':
+                        time, duration, mod = float(line[2]), float(line[3]), line[4]
+                        print(f'type: {line[0]}, time: {time}, duration: {duration}, mod: {mod}')
+                        pitch = int(line[1])
+                        print(pitch)
+                        MyComposition[i].add_note(pitch, duration=duration, type=mod, length=duration)
+                        mod_name = '\ntrem' if mod == 'tremolo' else '\ntrill' if mod == 'trill' else ''
+                        self.make_button(note_name=pitch_to_name(pitch) + mod_name, size=int(duration * 100),
+                                         chanel_number=i + 1)
+
+                    elif line[0] == 'c':
+                        time, duration, mod = float(line[2]), float(line[3]), line[4]
+                        print(f'type: {line[0]}, time: {time}, duration: {duration}, mod: {mod}')
+                        pitches = eval(line[1])
+                        print(pitches)
+                        MyComposition[i].add_chord(
+                            pitches, duration=duration, length=duration, arpeggiato=bool(int(mod)))
+                        a = " ".join(list(map(lambda x: pitch_to_name(x), pitches)))
+                        self.make_button(note_name=f'Chord\n{a}\n{"arpeggiato" if eval(mod) else ""}',
+                                         size=int(duration * 100), chanel_number=i + 1)
+
+                    elif line[0] == 'r':
+                        duration = float(line[1])
+                        MyComposition[i].add_note(type='rest', duration=duration)
+                        self.make_button(note_name='Rest', size=int(duration * 100), chanel_number=i + 1)
 
     # Отрисовывает графическое изображение ноты в канале
     def make_button(self, size, note_name, chanel_number, note_number=None):
-        self.chanel_buttons[chanel_number - 1].append(
-            NoteButton(note_number=len(MyComposition[chanel_number - 1].notes) if not note_number else
-            note_number, ch_number=chanel_number, note_name=note_name))
+        self.chanel_buttons[chanel_number - 1].append(NoteButton(
+            note_number=len(MyComposition[chanel_number - 1].notes), ch_number=chanel_number, note_name=note_name))
 
-        print(self.chanel_layouts[self.current_chanel - 1].geometry().width())
+        print(self.chanel_layouts[self.current_chanel - 1].geometry().width(), end='\t')
 
-        if sum(map(lambda x: x.width(), self.chanel_buttons[self.current_chanel - 1])) + size > self.chanel_layouts[
-            self.current_chanel - 1].geometry().width():
-            curr_w = self.chanel_layouts[self.current_chanel - 1].geometry().width()
-            self.channelsAreaWidget.setGeometry(
-                QRect(0, 0, max(map(lambda x: x.geometry().width(), self.chanel_layouts)) + size, 1280))
-            eval(f'self.chanel{self.current_chanel}.setGeometry('
-                 f'QRect(0, 80 * (self.current_chanel - 1), curr_w + size, 81))')
-            eval(f'self.chanel{self.current_chanel}notes_frame.setGeometry(QRect(160, 0, curr_w + size, 81))')
-            self.chanel_layouts[self.current_chanel - 1].setGeometry(QRect(2, 2, curr_w + size, 77))
+        self.channelsAreaWidget.setGeometry(
+            QRect(0, 0, self.channelsAreaWidget.geometry().width() + size, 1280))
+        for i in range(16):
+            eval(f'self.chanel{i + 1}.setGeometry('
+                 f'QRect(0, 80 * i, self.chanel{i + 1}.geometry().width() + size, 81))')
+            eval(f'self.chanel{i + 1}notes_frame.setGeometry('
+                 f'QRect(160, 0, self.chanel{i + 1}notes_frame.geometry().width() + size, 81))')
+            self.chanel_layouts[i].setGeometry(
+                QRect(2, 2, self.chanel_layouts[i].geometry().width() + size, 77))
 
-        eval(f'print(self.chanel{self.current_chanel}notes_frame.geometry().width())')
         print(self.chanel_layouts[self.current_chanel - 1].geometry().width(), end='\n\n')
 
         self.chanel_buttons[chanel_number - 1][-1].setText(
@@ -113,11 +178,14 @@ class MainWindow(QMainWindow):
         self.chanel_buttons[chanel_number - 1][-1].clicked.connect(self.delete_note)
         self.chanel_layouts[chanel_number - 1].addWidget(self.chanel_buttons[chanel_number - 1][-1])
 
+    # Обработчик нажатия клавиши фортепиано
+    def key_clicked(self):
+        self.read_type_of_note(int(self.sender().text().split('\n')[1]))
+
     # Удаляет ноту с канала
     def delete_note(self):
         ch_n = self.sender().ch_number
         note_n = self.chanel_buttons[ch_n - 1].index(self.sender()) + 1
-        print(f'delete_note executed for {ch_n, note_n}')
         MyComposition[ch_n - 1].remove_note(note_n - 1)
         self.chanel_layouts[ch_n - 1].removeWidget(self.sender())
         self.chanel_buttons[ch_n - 1].remove(self.chanel_buttons[ch_n - 1][note_n - 1])
@@ -298,45 +366,6 @@ class MainWindow(QMainWindow):
     def create_midi(self):
         print(MyComposition)
         MyComposition.export_as_midi(f'{self.output_file_name_input.text()}.mid')
-
-    def open_file(self):
-        # Name
-        # tempo
-        # chanel_count
-        # ChanelName instrument
-        # notes_count
-        # type, pitches, time, length, volume
-        # type, pitches, time, length, volume
-
-        file_name = QFileDialog.getOpenFileName(
-            self, 'Выбрать файл', '',
-            'MIDIMozart file (*.mdmz);;Все файлы (*)')[0]
-
-        if not file_name:
-            return
-
-        with open(file_name, mode='r', encoding='utf-8') as file:
-            self.composition_name = file.readline().strip()
-            print(self.composition_name)
-            self.setWindowTitle('MIDIMozart - ' + self.composition_name)
-
-            self.current_tempo = int(file.readline())
-            print(self.current_tempo)
-
-            chanel_count = int(file.readline())
-            print(chanel_count)
-
-            for i in range(chanel_count):
-                name, instrument = file.readline().strip().split()
-                print(name, instrument)
-                MyComposition[i].set_name(name)
-                MyComposition[i].set_instrument(int(instrument))
-                eval(f'self.chanel{i + 1}name.setText(name)')
-                eval(f'self.chanel{i + 1}instrument_input.setValue(int(instrument) + 1)')
-                notes_count = int(file.readline())
-                print(notes_count)
-                for j in range(notes_count):
-                    print(file.readline().split())
 
 
 if __name__ == '__main__':

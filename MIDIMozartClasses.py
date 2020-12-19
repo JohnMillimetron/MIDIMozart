@@ -108,6 +108,10 @@ class Composition:
         except PermissionError:
             print('Ошибка записи\nФайл используется другим приложением. Заакройте и повторите попытку.')
 
+    def clear(self):
+        for i in self.channels:
+            i.clear()
+
 
 class Chanel:
     """
@@ -202,6 +206,9 @@ class Chanel:
         # self.notes = self.notes[:shift_begin_number] + list(map(
         #     lambda note: Note(note.pitch, note.time - removed_note_duration, note.length, note.volume),
         #     self.notes[shift_begin_number:]))
+
+    def clear(self):
+        self.notes.clear()
 
 
 class Note:
