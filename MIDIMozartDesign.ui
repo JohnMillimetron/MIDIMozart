@@ -3182,19 +3182,6 @@ color: rgb(255, 255, 255);</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QPushButton" name="create_button">
-     <property name="geometry">
-      <rect>
-       <x>1050</x>
-       <y>80</y>
-       <width>111</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Создать</string>
-     </property>
-    </widget>
     <widget class="QSpinBox" name="chanel_input">
      <property name="geometry">
       <rect>
@@ -3329,7 +3316,7 @@ chanel</string>
       </rect>
      </property>
      <property name="title">
-      <string>Тип ноты</string>
+      <string>Штрих</string>
      </property>
      <widget class="QRadioButton" name="default_note_button">
       <property name="geometry">
@@ -3768,19 +3755,6 @@ chanel</string>
       <string notr="true">WhatToPaste</string>
      </attribute>
     </widget>
-    <widget class="QLineEdit" name="output_file_name_input">
-     <property name="geometry">
-      <rect>
-       <x>1050</x>
-       <y>120</y>
-       <width>113</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>test4</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="rest_button">
      <property name="geometry">
       <rect>
@@ -3894,19 +3868,6 @@ chanel</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QPushButton" name="pushButton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>2</y>
-       <width>35</width>
-       <height>35</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>save</string>
-     </property>
-    </widget>
     <widget class="Line" name="line_2">
      <property name="geometry">
       <rect>
@@ -3920,31 +3881,56 @@ chanel</string>
       <enum>Qt::Vertical</enum>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_2">
+    <widget class="QPushButton" name="save_as_button">
      <property name="geometry">
       <rect>
-       <x>60</x>
+       <x>10</x>
        <y>2</y>
-       <width>35</width>
+       <width>51</width>
        <height>35</height>
       </rect>
      </property>
      <property name="text">
-      <string>save
-as</string>
+      <string>save</string>
      </property>
     </widget>
     <widget class="QPushButton" name="load_file_button">
      <property name="geometry">
       <rect>
-       <x>110</x>
+       <x>84</x>
        <y>2</y>
-       <width>35</width>
+       <width>51</width>
        <height>35</height>
       </rect>
      </property>
      <property name="text">
       <string>load</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="create_button">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>5</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Создать</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="output_file_name_input">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>5</y>
+       <width>113</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>test4</string>
      </property>
     </widget>
    </widget>

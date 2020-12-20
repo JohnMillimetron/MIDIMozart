@@ -1,20 +1,24 @@
 Test composition
 120
-2
+3
 Pianenok 0 100
 8
-n 60 0 0.5 tremolo
-n 62 0.5 0.5 default
-n 64 1 0.5 tremolo
-n 65 1.5 0.5 default
-n 67 2 0.5 tremolo
-n 69 2.5 0.5 default
-n 71 3 0.5 tremolo
-n 72 3.5 0.5 trill
+n 60 0.5 tremolo
+n 62 0.5 default
+n 64 0.5 tremolo
+n 65 0.5 default
+n 67 0.5 tremolo
+n 69 0.5 default
+n 71 0.5 tremolo
+n 72 0.5 trill
 Gitarenok 28 100
 5
 r 4
-c (60,64,67) 4 1 1
-c (65,69,72) 5 1 0
-c (67,71,74) 6 1 1
-c (60,64,67) 7 1 0
+c (60,64,67) 1 1
+c (65,69,72) 1 0
+c (67,71,74) 1 1
+c (60,64,67) 1 0
+Ass 69 100
+2
+r 8.0
+g (60,96) 4

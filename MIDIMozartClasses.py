@@ -53,6 +53,7 @@ class Composition:
 
     def __init__(self, tempo=120):
         self.channels = [Chanel(f'Chanel{i + 1}') for i in range(16)]
+        self.tempo = tempo
 
     def __getitem__(self, channel):
         return self.channels[channel]
@@ -78,6 +79,7 @@ class Composition:
             midi_file.addTempo(self.channels.index(chanel), 0, chanel.tempo)
             midi_file.addProgramChange(
                 tracknum=0, channel=self.channels.index(chanel), program=chanel.instrument, time=0)
+            # midi_file.addTrackName(self.channels.index(chanel), 0, chanel.name)
 
             # Перебираем ноты
             for note in chanel.notes:
@@ -273,6 +275,7 @@ class Glissando(Note):
         # self.count_of_notes = int(self.length // 0.125)
         self.difference = abs(pitch2 - pitch) + 1
         self.notes = []
+        self.pitch2 = pitch2
         if pitch2 > pitch:
             for i in range(self.difference):
                 self.notes.append(Note(self.pitch + i, self.time + (self.length / self.difference) * i,
@@ -294,6 +297,7 @@ class Glissando(Note):
 class Chord(Note):
     def __init__(self, *args, time=1, length=1, volume=100, duration=1, arpeggiato=False):
         self.pitches = []
+        self.arpeggiato = arpeggiato
         if len(args) == 1:
             self.pitches = args[0]
             super().__init__(self.pitches[0], time, length, volume, duration)
