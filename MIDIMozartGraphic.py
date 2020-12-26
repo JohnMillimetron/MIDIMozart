@@ -1,11 +1,9 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QHBoxLayout, QSizePolicy, QWidget, QFrame, \
-    QLineEdit, QRadioButton, QFileDialog, QLabel
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QSizePolicy, QFileDialog
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtCore import QCoreApplication, Qt, QRect
+from PyQt5.QtSql import *
 from MIDIMozartClasses import *
-from MIDIMozartDesign import Ui_MIDIMozart
 
 # pyuic5 MIDIMozartDesign.ui -o MIDIMozartDesign.py
 QCoreApplication.addLibraryPath(
@@ -30,6 +28,7 @@ class MainWindow(QMainWindow):
         self.saved = True
         self.output_midi_name = 'untitled.mid'
         self.output_mdmz_name = 'untitled.mdmz'
+        self.composition_name = 'untitled'
 
         self.glissando_first_note = []
         self.manual_chord_notes = []
@@ -44,7 +43,7 @@ class MainWindow(QMainWindow):
                     break
 
         # Привязка кнопок длительностей
-        temp = ['1', '2', '2p', '4', '4p', '8', '8p', '16', '16p']
+        temp = ['1', '2', '2p', '4', '4p', '8', '8p', '16', '16p', '32']
         while temp:
             eval(f'self.duration_button_{temp.pop()}.clicked.connect(self.duration_button_clicked)')
 
@@ -78,11 +77,25 @@ class MainWindow(QMainWindow):
         self.manual_chord_clear_button.clicked.connect(self.manual_chord_clear)
         self.rest_button.clicked.connect(self.add_rest)
         self.interval_width_input.valueChanged.connect(self.interval_name_change)
+        self.duration_manual_button.clicked.connect(self.duration_button_clicked)
 
         self.load_file_button.clicked.connect(self.open_file)
         self.save_as_button.clicked.connect(self.write_file)
 
         self.channelsAreaWidget.setGeometry(0, 0, 1920, 1280)
+
+        db = QSqlDatabase.addDatabase('QSQLITE')
+        db.setDatabaseName('MIDIMozartDatabase.sqlite')
+        db.open()
+
+        # Создадим объект QSqlTableModel,
+        # зададим таблицу, с которой он будет работать,
+        #  и выберем все данные
+        model = QSqlTableModel(self, db)
+        model.setTable('ProgramNames')
+        model.select()
+
+        self.program_names_table.setModel(model)
 
     def open_file(self):
         # Name
@@ -109,36 +122,25 @@ class MainWindow(QMainWindow):
                 self.output_midi_name = file_name
 
                 self.composition_name = file.readline().strip()
-                print(self.composition_name)
-                self.setWindowTitle('MIDIMozart - ' + self.composition_name)
 
                 self.current_tempo = int(file.readline())
-                print(self.current_tempo)
 
                 chanel_count = int(file.readline())
-                print(chanel_count)
 
                 for i in range(chanel_count):
-                    # self.current_chanel = i
-                    print(self.current_chanel)
                     name, instrument, volume = file.readline().strip().split()
-                    print(f'Chanel {i}: {name}, {instrument}, {volume}')
                     MyComposition[i].set_name(name)
                     MyComposition[i].set_instrument(int(instrument))
                     MyComposition[i].set_volume(int(volume))
                     eval(f'self.chanel{i + 1}name.setText(name)')
                     eval(f'self.chanel{i + 1}instrument_input.setValue(int(instrument) + 1)')
                     notes_count = int(file.readline())
-                    print(notes_count)
                     for j in range(notes_count):
                         line = file.readline().split()
-                        print(line)
 
                         if line[0] == 'n':
                             duration, mod = float(line[2]), line[3]
-                            print(f'type: {line[0]}, duration: {duration}, mod: {mod}')
                             pitch = int(line[1])
-                            print(pitch)
                             MyComposition[i].add_note(pitch, duration=duration, type=mod, length=duration)
                             mod_name = '\ntrem' if mod == 'tremolo' else '\ntrill' if mod == 'trill' else ''
                             self.make_button(note_name=pitch_to_name(pitch) + mod_name, size=int(duration * 100),
@@ -146,9 +148,7 @@ class MainWindow(QMainWindow):
 
                         elif line[0] == 'c':
                             duration, mod = float(line[2]), line[3]
-                            print(f'type: {line[0]}, duration: {duration}, mod: {mod}')
                             pitches = eval(line[1])
-                            print(pitches)
                             MyComposition[i].add_chord(
                                 pitches, duration=duration, length=duration, arpeggiato=bool(int(mod)))
                             a = " ".join(list(map(lambda x: pitch_to_name(x), pitches)))
@@ -194,16 +194,16 @@ class MainWindow(QMainWindow):
                     file.writelines(str(len(i.notes)) + '\n')
                     for j in i.notes:
                         if type(j) == Note:
-                            file.writelines(f'n {j.pitch} {j.duration} default\n')
+                            file.writelines(f'n {j.pitch} {j.length} default\n')
                         elif type(j) == TremoloNote:
-                            file.writelines(f'n {j.pitch} {j.duration} tremolo\n')
+                            file.writelines(f'n {j.pitch} {j.length} tremolo\n')
                         elif type(j) == TrillNote:
-                            file.writelines(f'n {j.pitch} {j.duration} trill\n')
+                            file.writelines(f'n {j.pitch} {j.length} trill\n')
                         elif type(j) == Rest:
                             file.writelines(f'r {j.duration}\n')
                         elif type(j) == Chord:
                             file.writelines(f'c ({",".join(list(map(str, j.pitches)))}) '
-                                            f'{j.duration} {1 if j.arpeggiato else 0}\n')
+                                            f'{j.length} {1 if j.arpeggiato else 0}\n')
                         elif type(j) == Glissando:
                             file.writelines(f'g ({j.pitch},{j.pitch2}) {j.length}\n')
         except Exception:
@@ -215,19 +215,7 @@ class MainWindow(QMainWindow):
         self.chanel_buttons[chanel_number - 1].append(NoteButton(
             note_number=len(MyComposition[chanel_number - 1].notes), ch_number=chanel_number, note_name=note_name))
 
-        print(self.chanel_layouts[self.current_chanel - 1].geometry().width(), end='\t')
-
-        self.channelsAreaWidget.setGeometry(
-            QRect(0, 0, self.channelsAreaWidget.geometry().width() + size, 1280))
-        for i in range(16):
-            eval(f'self.chanel{i + 1}.setGeometry('
-                 f'QRect(0, 80 * i, self.chanel{i + 1}.geometry().width() + size, 81))')
-            eval(f'self.chanel{i + 1}notes_frame.setGeometry('
-                 f'QRect(160, 0, self.chanel{i + 1}notes_frame.geometry().width() + size, 81))')
-            self.chanel_layouts[i].setGeometry(
-                QRect(2, 2, self.chanel_layouts[i].geometry().width() + size, 77))
-
-        print(self.chanel_layouts[self.current_chanel - 1].geometry().width(), end='\n\n')
+        self.notes_area_resize(size)
 
         self.chanel_buttons[chanel_number - 1][-1].setText(
             str(self.chanel_buttons[chanel_number - 1][-1].note_name) + '\n' +
@@ -237,6 +225,17 @@ class MainWindow(QMainWindow):
         self.chanel_buttons[chanel_number - 1][-1].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.chanel_buttons[chanel_number - 1][-1].clicked.connect(self.delete_note)
         self.chanel_layouts[chanel_number - 1].addWidget(self.chanel_buttons[chanel_number - 1][-1])
+
+    def notes_area_resize(self, size):
+        self.channelsAreaWidget.setGeometry(
+            QRect(0, 0, self.channelsAreaWidget.geometry().width() + size, 1280))
+        for i in range(16):
+            eval(f'self.chanel{i + 1}.setGeometry('
+                 f'QRect(0, 80 * i, self.chanel{i + 1}.geometry().width() + size, 81))')
+            eval(f'self.chanel{i + 1}notes_frame.setGeometry('
+                 f'QRect(160, 0, self.chanel{i + 1}notes_frame.geometry().width() + size, 81))')
+            self.chanel_layouts[i].setGeometry(
+                QRect(2, 2, self.chanel_layouts[i].geometry().width() + size, 77))
 
     def clear_all(self):
         MyComposition.clear()
@@ -257,16 +256,22 @@ class MainWindow(QMainWindow):
     # Удаляет ноту с канала
     def delete_note(self):
         ch_n = self.sender().ch_number
+        size = self.sender().size().width()
         note_n = self.chanel_buttons[ch_n - 1].index(self.sender()) + 1
         MyComposition[ch_n - 1].remove_note(note_n - 1)
         self.chanel_layouts[ch_n - 1].removeWidget(self.sender())
         self.chanel_buttons[ch_n - 1].remove(self.chanel_buttons[ch_n - 1][note_n - 1])
+        self.notes_area_resize(size * -1)
 
     # Обработчик смены длительности
     def duration_button_clicked(self):
-        temp = {"1": 4, "2": 2, "2.": 3, "4": 1, "4.": 1.5, "8": 0.5, "8.": 0.75, "16": 0.25, "16.": 0.375}
-        self.current_duration = temp.get(self.sender().text())
-        self.duration_label.setText(f'Current duration: {self.current_duration} beats')
+        if self.sender().text() != '-->':
+            temp = {"1": 4, "2": 2, "2.": 3, "4": 1, "4.": 1.5, "8": 0.5, "8.": 0.75, "16": 0.25, "16.": 0.375,
+                    '32': 0.125}
+            self.current_duration = temp.get(self.sender().text())
+        else:
+            self.current_duration = float(self.duration_input.value())
+        self.duration_label.setText(f'Длительность: {self.current_duration} beat(s)')
 
     def current_chanel_change(self):
         self.current_chanel = int(self.chanel_input.value())
@@ -371,58 +376,59 @@ class MainWindow(QMainWindow):
     # Обработчик клавиатуры
     def keyPressEvent(self, event):
         key = event.key()
+        a = self.keyboard_octave_input.value()
         if key == Qt.Key_Z:
-            self.C4.click()
+            eval(f'self.C{a}.click()')
         elif key == Qt.Key_S:
-            self.Cis4.click()
+            eval(f'self.Cis{a}.click()')
         elif key == Qt.Key_X:
-            self.D4.click()
+            eval(f'self.D{a}.click()')
         elif key == Qt.Key_D:
-            self.Dis4.click()
+            eval(f'self.Dis{a}.click()')
         elif key == Qt.Key_C:
-            self.E4.click()
+            eval(f'self.E{a}.click()')
         elif key == Qt.Key_V:
-            self.F4.click()
+            eval(f'self.F{a}.click()')
         elif key == Qt.Key_G:
-            self.Fis4.click()
+            eval(f'self.Fis{a}.click()')
         elif key == Qt.Key_B:
-            self.G4.click()
+            eval(f'self.G{a}.click()')
         elif key == Qt.Key_H:
-            self.Gis4.click()
+            eval(f'self.Gis{a}.click()')
         elif key == Qt.Key_N:
-            self.A4.click()
+            eval(f'self.A{a}.click()')
         elif key == Qt.Key_J:
-            self.B4.click()
+            eval(f'self.B{a}.click()')
         elif key == Qt.Key_M:
-            self.H4.click()
+            eval(f'self.H{a}.click()')
         elif key == Qt.Key_Q or key == Qt.Key_Comma:
-            self.C5.click()
+            eval(f'self.C{a + 1}.click()')
         elif key == Qt.Key_2 or key == Qt.Key_L:
-            self.Cis5.click()
+            eval(f'self.Cis{a + 1}.click()')
         elif key == Qt.Key_W or key == Qt.Key_Period:
-            self.D5.click()
+            eval(f'self.D{a + 1}.click()')
         elif key == Qt.Key_3 or key == Qt.Key_Semicolon:
-            self.Dis5.click()
+            eval(f'self.Dis{a + 1}.click()')
         elif key == Qt.Key_E or key == Qt.Key_Slash:
-            self.E5.click()
+            eval(f'self.E{a + 1}.click()')
         elif key == Qt.Key_R:
-            self.F5.click()
+            eval(f'self.F{a + 1}.click()')
         elif key == Qt.Key_5:
-            self.Fis5.click()
+            eval(f'self.Fis{a + 1}.click()')
         elif key == Qt.Key_T:
-            self.G5.click()
+            eval(f'self.G{a + 1}.click()')
         elif key == Qt.Key_6:
-            self.Gis5.click()
+            eval(f'self.Gis{a + 1}.click()')
         elif key == Qt.Key_Y:
-            self.A5.click()
+            eval(f'self.A{a + 1}.click()')
         elif key == Qt.Key_7:
-            self.B5.click()
+            eval(f'self.B{a + 1}.click()')
         elif key == Qt.Key_U:
-            self.H5.click()
+            eval(f'self.H{a + 1}.click()')
         elif key == Qt.Key_I:
-            self.C6.click()
+            eval(f'self.C{a + 2}.click()')
         elif key == Qt.Key_Space:
-            self.rest_button.click()
+            eval(f'self.rest_button.click()')
         elif key == Qt.Key_Backspace:
             if self.chanel_buttons[self.current_chanel - 1]:
                 self.chanel_layouts[self.current_chanel - 1].itemAt(
@@ -434,10 +440,16 @@ class MainWindow(QMainWindow):
     def volume_change(self):
         MyComposition[int(self.sender().objectName()[6]) - 1].set_volume(int(self.sender().value()))
 
+    def set_output_path(self):
+        self.output_midi_name = QFileDialog.getSaveFileName(
+            self, 'Выбрать файл', '',
+            'MIDI sequence (*.midi);;Все файлы (*)')[0]
+
     # Создаёт MIDI-файл
     def create_midi(self):
         print(MyComposition)
-        MyComposition.export_as_midi(f'{self.output_file_name_input.text()}.mid')
+        self.set_output_path()
+        MyComposition.export_as_midi(self.output_midi_name)
 
 
 if __name__ == '__main__':
