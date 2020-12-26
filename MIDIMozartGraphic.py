@@ -1,11 +1,10 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QSizePolicy, QFileDialog
-from PyQt5 import uic  # Импортируем uic
-from PyQt5.QtCore import QCoreApplication, Qt, QRect
+from PyQt5 import uic, QtMultimedia
+from PyQt5.QtCore import QCoreApplication, Qt, QRect, QUrl
 from PyQt5.QtSql import *
 from MIDIMozartClasses import *
 
-# pyuic5 MIDIMozartDesign.ui -o MIDIMozartDesign.py
 QCoreApplication.addLibraryPath(
     r"C:\Users\Андрей\AppData\Local\Programs\Python\Python38-32\Lib\site-packages\PyQt5\Qt\plugins")
 
@@ -14,9 +13,6 @@ MyComposition = Composition()
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        # super().__init__()
-        # self.setupUi(self)
-
         super().__init__()
         uic.loadUi('MIDIMozartDesign.ui', self)  # Загружаем дизайн
         self.setWindowTitle('MIDIMozart - untitled')
@@ -66,7 +62,7 @@ class MainWindow(QMainWindow):
 
         for i in range(16):
             eval(f'self.chanel{i + 1}instrument_input.valueChanged.connect(self.instrument_change)')
-        for i in range(3):
+        for i in range(16):
             eval(f'self.chanel{i + 1}volume_input.valueChanged.connect(self.volume_change)')
 
         # Привязка кнопок к обработчикам
@@ -78,6 +74,8 @@ class MainWindow(QMainWindow):
         self.rest_button.clicked.connect(self.add_rest)
         self.interval_width_input.valueChanged.connect(self.interval_name_change)
         self.duration_manual_button.clicked.connect(self.duration_button_clicked)
+        self.play_button.clicked.connect(self.play)
+        self.stop_button.clicked.connect(self.stop)
 
         self.load_file_button.clicked.connect(self.open_file)
         self.save_as_button.clicked.connect(self.write_file)
@@ -87,23 +85,19 @@ class MainWindow(QMainWindow):
         db = QSqlDatabase.addDatabase('QSQLITE')
         db.setDatabaseName('MIDIMozartDatabase.sqlite')
         db.open()
-
-        # Создадим объект QSqlTableModel,
-        # зададим таблицу, с которой он будет работать,
-        #  и выберем все данные
         model = QSqlTableModel(self, db)
         model.setTable('ProgramNames')
         model.select()
 
         self.program_names_table.setModel(model)
 
+    # Заполняет каналы из файла с сохранением .mdmz
     def open_file(self):
         # Name
         # tempo
         # chanel_count
         # ChanelName instrument volume
         # notes_count
-        # type pitches time length mod
         # type pitches time length mod
         # type duration
 
@@ -171,6 +165,7 @@ class MainWindow(QMainWindow):
             print('Файл некорректен. Произошла ошибка.')
             return
 
+    # Записывает набранные ноты в файл .mdmz
     def write_file(self):
         file_name = QFileDialog.getSaveFileName(
             self, 'Выбрать файл', '',
@@ -226,6 +221,7 @@ class MainWindow(QMainWindow):
         self.chanel_buttons[chanel_number - 1][-1].clicked.connect(self.delete_note)
         self.chanel_layouts[chanel_number - 1].addWidget(self.chanel_buttons[chanel_number - 1][-1])
 
+    # Изменяет размер виджета с каналами
     def notes_area_resize(self, size):
         self.channelsAreaWidget.setGeometry(
             QRect(0, 0, self.channelsAreaWidget.geometry().width() + size, 1280))
@@ -237,6 +233,7 @@ class MainWindow(QMainWindow):
             self.chanel_layouts[i].setGeometry(
                 QRect(2, 2, self.chanel_layouts[i].geometry().width() + size, 77))
 
+    # Очищает все каналы
     def clear_all(self):
         MyComposition.clear()
         for i in self.chanel_buttons:
@@ -273,13 +270,16 @@ class MainWindow(QMainWindow):
             self.current_duration = float(self.duration_input.value())
         self.duration_label.setText(f'Длительность: {self.current_duration} beat(s)')
 
+    # Изменяет канал, с которым сейчас работаем
     def current_chanel_change(self):
         self.current_chanel = int(self.chanel_input.value())
 
+    # Изменяет темп композиции
     def current_tempo_change(self):
         MyComposition.set_tempo(self.tempo_input.value())
         self.current_tempo = int(self.tempo_input.value())
 
+    # Обновляет окошко с названием интервала
     def interval_name_change(self):
         names = {
             1: 'Малая секунда',
@@ -298,9 +298,8 @@ class MainWindow(QMainWindow):
         width = self.interval_width_input.value()
         self.interval_name.setText(names.get(width))
 
+    # Вызывается при нажатии клавиши на фо-но, считывает параметры того, что нужно добавить на канал
     def read_type_of_note(self, pitch):
-        # Вызывается при нажатии клавиши на фо-но, считывает параметры того, что нужно добавить на канал
-        # Если ожидается нажатие дополнительных клавиш для завершения действия, возвращает pitch
         if self.glissando_first_note:
             MyComposition[self.current_chanel - 1].add_note(self.glissando_first_note, pitch,
                                                             duration=float(self.current_duration), type='gliss')
@@ -355,11 +354,13 @@ class MainWindow(QMainWindow):
                 note_name=f'{pitch_to_name(pitch)} {pitch_to_name(pitch + width)}\n{self.interval_name.text()}',
                 size=int(self.current_duration * 100), chanel_number=self.current_chanel)
 
+    # Добавляет паузу на канал
     def add_rest(self):
         MyComposition[self.current_chanel - 1].add_note(duration=self.current_duration, type='rest')
         self.make_button(note_name='Rest', size=int(self.current_duration * 100),
                          chanel_number=self.current_chanel)
 
+    # Вставляет набранный вручную аккорд на канал
     def manual_chord_paste(self):
         if self.manual_chord_line.text() != 'Notes will appear here...' \
                 and len(self.manual_chord_line.text().split()) > 1:
@@ -370,6 +371,7 @@ class MainWindow(QMainWindow):
             self.make_button(note_name=f'Chord\n{self.manual_chord_line.text()}\n{"arpeggiato" if arpeggiato else ""}',
                              size=int(self.current_duration * 100), chanel_number=self.current_chanel)
 
+    # Очищает окно ручного набора аккорда
     def manual_chord_clear(self):
         self.manual_chord_line.setText('Notes will appear here...')
 
@@ -434,22 +436,41 @@ class MainWindow(QMainWindow):
                 self.chanel_layouts[self.current_chanel - 1].itemAt(
                     len(self.chanel_buttons[self.current_chanel - 1]) - 1).widget().click()
 
+    # Изменяет инструмент канала
     def instrument_change(self):
         MyComposition[int(self.sender().objectName()[6]) - 1].set_instrument(int(self.sender().value()) - 1)
 
+    # Изменяет громкость канала
     def volume_change(self):
         MyComposition[int(self.sender().objectName()[6]) - 1].set_volume(int(self.sender().value()))
 
+    # Проигрывает набранную композицию
+    def play(self):
+        self.create_midi(temp=True)
+        media = QUrl.fromLocalFile('temp.mid')
+        content = QtMultimedia.QMediaContent(media)
+        self.player = QtMultimedia.QMediaPlayer()
+        self.player.setMedia(content)
+        self.player.play()
+
+    # Останавливает проигрывание
+    def stop(self):
+        self.player.stop()
+
+    # Задаёт путь для экспорта midi файла
     def set_output_path(self):
         self.output_midi_name = QFileDialog.getSaveFileName(
             self, 'Выбрать файл', '',
             'MIDI sequence (*.midi);;Все файлы (*)')[0]
 
     # Создаёт MIDI-файл
-    def create_midi(self):
-        print(MyComposition)
-        self.set_output_path()
-        MyComposition.export_as_midi(self.output_midi_name)
+    def create_midi(self, temp=False):
+        if not temp:
+            print(MyComposition)
+            self.set_output_path()
+            MyComposition.export_as_midi(self.output_midi_name)
+        else:
+            MyComposition.export_as_midi('temp.mid')
 
 
 if __name__ == '__main__':
