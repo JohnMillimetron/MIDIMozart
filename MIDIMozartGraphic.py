@@ -5,8 +5,6 @@ from PyQt5.QtCore import QCoreApplication, Qt, QRect, QUrl
 from PyQt5.QtSql import *
 from MIDIMozartClasses import *
 
-QCoreApplication.addLibraryPath(
-    r"C:\Users\Андрей\AppData\Local\Programs\Python\Python38-32\Lib\site-packages\PyQt5\Qt\plugins")
 
 MyComposition = Composition()
 
@@ -292,7 +290,7 @@ class MainWindow(QMainWindow):
             8: 'Малая секста',
             9: 'Большая секста',
             10: 'Малая септима',
-            11: 'Большая секунда',
+            11: 'Большая септима',
             12: 'Октава'
         }
         width = self.interval_width_input.value()

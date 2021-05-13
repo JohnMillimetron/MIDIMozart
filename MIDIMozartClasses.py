@@ -46,9 +46,7 @@ NOTE_NUMBERS_AND_OCTAVES = {
 
 class Composition:
     """
-    Class Composition
     Класс представляет собой музыкальное произведение, состоящее из одной или нескольких дорожек Chanel.
-    Есть функция для конвертации в MIDI файл с помощью библиотеки midiutil.
     """
 
     def __init__(self, tempo=120):
@@ -64,7 +62,7 @@ class Composition:
 
     def add_chanel(self, tempo=120, instrument=0):  # Добавить пустую дорожку к произведению.
         if len(self.channels) >= 16:
-            print('Невозможно добавить канал. Количесвто каналов не может быть больше 16.')
+            print('Невозможно добавить канал. Количество каналов не может быть больше 16.')
         else:
             self.channels.append(Chanel(tempo, instrument))
 
@@ -117,10 +115,7 @@ class Composition:
 
 class Chanel:
     """
-    Class Chanel
     В классе содержится информация об одной дорожке произведения.
-    Главный элемент класса - список нот notes.
-    Несколько классов Chanel могут быть объединены в классе Composition
     """
 
     def __init__(self, name, tempo=120, instrument=0):
@@ -215,9 +210,7 @@ class Chanel:
 
 class Note:
     """
-    Class Note
-    Класс представляет собой одиночную ноту произведения,
-    которая должна быть прикреплена к определённой дорожке Chanel.
+    Класс представляет собой ноту.
     """
 
     def __init__(self, pitch, time=1, length=1, volume=100, duration=1):
@@ -329,6 +322,8 @@ class Chord(Note):
                 self.pitches.extend((self.root_pitch, self.root_pitch + 2, self.root_pitch + 7))
             elif self.structure == 'sus4':
                 self.pitches.extend((self.root_pitch, self.root_pitch + 5, self.root_pitch + 7))
+            elif self.structure == '5+4':
+                self.pitches.extend((self.root_pitch, self.root_pitch + 7, self.root_pitch + 12))
 
         self.notes = []
         # self.name = f'chord\n{" ".join(map(lambda x: x.name, self.notes))}'

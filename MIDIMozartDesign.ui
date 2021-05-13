@@ -1868,7 +1868,7 @@ color: rgb(255, 255, 255);</string>
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>-174</y>
+       <y>0</y>
        <width>1895</width>
        <height>1280</height>
       </rect>
@@ -3665,17 +3665,22 @@ chanel</string>
       </item>
       <item>
        <property name="text">
+        <string>Minor</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>5+4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>MajInv1</string>
        </property>
       </item>
       <item>
        <property name="text">
         <string>MajInv2</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Minor</string>
        </property>
       </item>
       <item>
@@ -3690,22 +3695,22 @@ chanel</string>
       </item>
       <item>
        <property name="text">
-        <string>Aug</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Dim</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
         <string>sus2</string>
        </property>
       </item>
       <item>
        <property name="text">
         <string>sus4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Aug</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Dim</string>
        </property>
       </item>
       <item>
